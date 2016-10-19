@@ -1,61 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        id="com.buongiorno.hybrid.newton"
-        version="0.1.0">
-
+        id="cordova-plugin-newton" version="0.0.1">
     <name>Newton</name>
-
-    <description>
-        Newton Plugin for Android
-    </description>
-
-    <repo>https://bitbucket.org/ibridi/plugin-cordova-newton/</repo>
-    <author></author>
-    <keywords>deltadna, cordova, phonegap, ionic, plugin, ios, android</keywords>
-
-    <engines>
-        <engine name="cordova" version=">=3.0.0"/>
-    </engines>
-
-    <js-module src="www/newton.js">
-        <clobbers target="window.newton"/>
-    </js-module>    
-
+    <description>Cordova Newton Plugin</description>
+    <license>Apache 2.0</license>
+    <keywords>cordova,newton</keywords>
+    
+    
     <platform name="android">
+        <framework src="src/android/build-extras.gradle" custom="true" type="gradleReference" />
 
-      <source-file src="src/android/newton.xml" target-dir="res/values" />
-     
-        <!-- config.xml -->
-        <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="Newton">
-                <param name="android-package"
-                       value="com.eatsjobs.cordova.newton.NewtonPlugin"/>
-            </feature>
-        </config-file>
-        <!-- config.xml -->
+        <framework src="com.facebook.android:facebook-android-sdk:3.23.0" />
+        <framework src="com.google.android.gms:play-services-gcm:8.3.0" />
+        <framework src="com.squareup.okhttp3:okhttp:3.0.1" />
 
-        <!-- Plugin files -->
-        <source-file src="src/android/Newton.jar"
-                     target-dir="libs/"/>
-        <source-file src="src/android/NewtonPlugin.java"
-                     target-dir="src/com/eatsjobs/cordova/newton"/>
-        <config-file target="AndroidManifest.xml" parent="/manifest">
-            <!-- <uses-sdk android:minSdkVersion="9"/> -->            
-
-            <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-            <uses-permission android:name="android.permission.WAKE_LOCK" />
-            <uses-permission android:name="android.permission.INTERNET" />
-        </config-file>
-    </platform>   
-
-    <platform name="ios">
-        <!-- for iOS 9 support -->
-        <config-file target="*-Info.plist" parent="NSAppTransportSecurity">
-            <dict>
-                <key>NSAllowsArbitraryLoads</key>
-                <true/>
-            </dict>
-        </config-file>
     </platform>
 </plugin>
