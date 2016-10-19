@@ -1,0 +1,7 @@
+repositories {
+    maven { url 'http://static.newton.pm/android/' }
+}
+
+dependencies {
+    compile 'com.buongiorno:newton:1.11.1@aar'
+}
