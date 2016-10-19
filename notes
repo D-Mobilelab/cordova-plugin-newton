@@ -6,3 +6,5 @@ Note that plugins can also include build-extras.gradle files via:
 <framework src="some.gradle" custom="true" type="gradleReference" />
 
 
+modelli di plugin per le push:
+https://github.com/phonegap/phonegap-plugin-push/
