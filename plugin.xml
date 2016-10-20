@@ -6,11 +6,18 @@
     <license>Apache 2.0</license>
     <keywords>cordova,newton</keywords>
     
+    <preference name="SECRET"/>
+    <preference name="SENDER_ID"/>
     
     <platform name="android">
+        <config-file target="res/values/strings.xml" parent="/resources">
+            <string name="NEWTON_SECRET">$SECRET</string>
+            <string name="NEWTON_SENDER_ID">$SENDER_ID</string>
+        </config-file>
+
         <framework src="src/android/build-extras.gradle" custom="true" type="gradleReference" />
 
-        <framework src="com.facebook.android:facebook-android-sdk:3.23.0" />
+        <frameworkDisabled src="com.facebook.android:facebook-android-sdk:3.23.0" />
         <framework src="com.google.android.gms:play-services-gcm:8.3.0" />
         <framework src="com.squareup.okhttp3:okhttp:3.0.1" />
 
