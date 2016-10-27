@@ -48,6 +48,8 @@
             <meta-data android:name="newton_sender_id" android:value="@string/NEWTON_SENDER_ID" />
             
         </config-file>
+        
+        <source-file src="src/android/NewtonPlugin.java" target-dir="src/com/buongiorno/newton/cordova/"/>
 
     </platform>
 </plugin>
