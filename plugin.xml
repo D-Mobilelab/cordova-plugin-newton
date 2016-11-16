@@ -6,10 +6,24 @@
     <license>Apache 2.0</license>
     <keywords>cordova,newton</keywords>
     
+    <description>
+		This plugin allow to use Newton SDK with Cordova
+	</description>
+
+    <js-module src="src/js/newton.js" name="Newton">
+        <clobbers target="Newton"/>
+    </js-module>
+
     <preference name="SECRET"/>
     <preference name="SENDER_ID"/>
     
     <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="Newton">
+                <param name="android-package" value="com.buongiorno.newton.cordova.NewtonPlugin"/>
+            </feature>
+        </config-file>
+        
         <config-file target="res/values/strings.xml" parent="/resources">
             <string name="NEWTON_SECRET">$SECRET</string>
             <string name="NEWTON_SENDER_ID">$SENDER_ID</string>
@@ -20,6 +34,7 @@
         <frameworkDisabled src="com.facebook.android:facebook-android-sdk:3.23.0" />
         <framework src="com.google.android.gms:play-services-gcm:8.3.0" />
         <framework src="com.squareup.okhttp3:okhttp:3.0.1" />
+        <framework src="me.leolin:ShortcutBadger:1.1.4@aar"/>
 
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.INTERNET"/>
@@ -34,21 +49,22 @@
         </config-file>
 
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
-            <receiver android:name="com.buongiorno.newton.gcm.GcmBroadcastReceiver" 
+            <receiver android:name="com.buongiorno.newton.GcmBroadcastReceiver" 
             android:permission="com.google.android.c2dm.permission.SEND">
                 <intent-filter>
                     <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                     <category android:name="${applicationId}" />
                 </intent-filter>
             </receiver>
-            <service android:name="com.buongiorno.newton.gcm.GcmIntentService" />
-            <activity android:name="com.buongiorno.newton.gcm.PushNotificationActivity" />
+            <service android:name="com.buongiorno.newton.GcmIntentService" />
+            <activity android:name="com.buongiorno.newton.PushNotificationActivity" />
 
             <meta-data android:name="newton_secret" android:value="@string/NEWTON_SECRET" />
             <meta-data android:name="newton_sender_id" android:value="@string/NEWTON_SENDER_ID" />
             
         </config-file>
         
+        <source-file src="src/android/PermissionUtils.java" target-dir="src/com/buongiorno/newton/cordova/"/>
         <source-file src="src/android/NewtonPlugin.java" target-dir="src/com/buongiorno/newton/cordova/"/>
 
     </platform>
