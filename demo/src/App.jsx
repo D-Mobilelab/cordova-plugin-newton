@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Page, Button, Toolbar, List, ListHeader, ListItem, Input} from 'react-onsenui';
+import {Page, Button, Toolbar, List, ListHeader, ListItem, Input, Range} from 'react-onsenui';
 import {notification} from 'onsenui';
 
 class App extends React.Component {
@@ -12,7 +12,9 @@ class App extends React.Component {
       //logLines: [{id: 0, value: 'test row 1'}, {id: 1, value: 'test row 2'}],
       nextLogIndex: 0,
       initDone: false,
-      receivedNotifications: 0
+      receivedNotifications: 0,
+      environment: "",
+      badgeNum: 0
     };
   }
 
@@ -38,17 +40,23 @@ class App extends React.Component {
       this.setState({receivedNotifications: ++this.state.receivedNotifications})
     })
 
-    this.newton.getEnvironmentString((j)=>{
-      this.setState({environment: j.environmentString})
-    },(e)=>{
-      this.addLogRow("getEnvironmentString ERR "+e)
+    // wait for initialization complete event
+    this.newton.on("initialized", (n)=>{
+
+      this.newton.getEnvironmentString((j)=>{
+        this.setState({environment: j.environmentString})
+      },(e)=>{
+        this.addLogRow("getEnvironmentString ERR "+e)
+      })
+      
+      this.setState({initDone:true})
     })
+
     
-    this.setState({initDone:true})
   }
 
   sendEvent() {
-    this.newton.event(
+    this.newton.sendEvent(
       (res) => this.addLogRow("Event OK"),
       (err) => this.addLogRow("Event ERR "+err),
       this.state.eventName
@@ -56,7 +64,7 @@ class App extends React.Component {
   }
 
   sendLogin() {
-    this.newton.login(
+    this.newton.startLoginFlowWithParams(
       (res) => this.addLogRow("Login OK"),
       (err) => this.addLogRow("Login ERR "+err),
       {
@@ -92,12 +100,45 @@ class App extends React.Component {
 
   render() {
     return (
-      <Page renderToolbar={this.renderToolbar}>
+      <Page renderToolbar={() => this.renderToolbar()}>
+        <section style={{textAlign: 'center'}}>
+          <p>
+            Set badge number:
+            <Range
+              onChange={() => {
+                let val = e.target.value
+                this.setState({badgeNum: val})
+                this.newton.setApplicationIconBadgeNumber(
+                  (res) => this.addLogRow("setApplicationIconBadgeNumber OK: "+JSON.stringify(res)),
+                  (err) => this.addLogRow("setApplicationIconBadgeNumber ERR "+err),
+                  val
+                )
+              }}
+              disabled={this.state.initDone}
+              value={this.state.badgeNum}
+              min={0}
+              max={50}
+            />
+            <span className="notification">{this.state.badgeNum}</span>
+          </p>
+        </section>
+        
         <section style={{textAlign: 'center'}}>
           <Button
             onClick={() => this.sendInit()}
             disabled={this.state.initDone}            
           >Init</Button>
+
+          Received Notifications<span className="notification">{this.state.receivedNotifications}</span>
+          <Button
+            onClick={() => {
+             this.newton.clearAllNotifications(
+                (res) => this.addLogRow("clearAllNotifications OK"),
+                (err) => this.addLogRow("clearAllNotifications ERR "+err)
+              )  
+            }}
+            disabled={!this.state.initDone}            
+          >Clear</Button>
         </section>
         <section style={{textAlign: 'center'}}>
           <p>
@@ -120,10 +161,164 @@ class App extends React.Component {
             onClick={() => this.sendLogin()}
             disabled={!this.state.initDone}            
           >Send Start Login</Button>
+
+          <Button
+            onClick={() => {
+             this.newton.userLogout(
+                (res) => this.addLogRow("Logout OK"),
+                (err) => this.addLogRow("Logout ERR "+err)
+              )  
+            }}
+            disabled={!this.state.initDone}            
+          >Send Logout</Button>
+          
+          <Button
+            onClick={() => {
+             this.newton.isUserLogged(
+                (res) => this.addLogRow("isUserLogged OK: "+JSON.stringify(res)),
+                (err) => this.addLogRow("isUserLogged ERR "+err)
+              )  
+            }}
+            disabled={!this.state.initDone}
+          >Is user logged ?</Button>
+
+          <Button
+            onClick={() => {
+             this.newton.getUserMetaInfo(
+                (res) => this.addLogRow("getUserMetaInfo OK: "+JSON.stringify(res)),
+                (err) => this.addLogRow("getUserMetaInfo ERR "+err)
+              )  
+            }}
+            disabled={!this.state.initDone}
+          >getUserMetaInfo</Button>
+
+          <Button
+            onClick={() => {
+             this.newton.getUserToken(
+                (res) => this.addLogRow("getUserToken OK: "+JSON.stringify(res)),
+                (err) => this.addLogRow("getUserToken ERR "+err)
+              )  
+            }}
+            disabled={!this.state.initDone}
+          >getUserToken</Button>
+
+          <Button
+            onClick={() => {
+             this.newton.getOAuthProviders(
+                (res) => this.addLogRow("getOAuthProviders OK: "+JSON.stringify(res)),
+                (err) => this.addLogRow("getOAuthProviders ERR "+err)
+              )  
+            }}
+            disabled={!this.state.initDone}
+          >getOAuthProviders</Button>
         </section>
 
         <section style={{textAlign: 'center'}}>
-          Received Notifications<span className="notification">{this.state.receivedNotifications}</span>
+          
+        </section>
+
+        <section style={{textAlign: 'center'}}>
+          <p>
+            <Input
+              value={this.state.contentIdRank}
+              onChange={(e) => {this.setState({contentIdRank:e.target.value})}}
+              modifier='underbar'
+              disabled={!this.state.initDone}
+              float
+              placeholder='rank Content Id' />
+          </p>
+        <Button
+          onClick={() => {
+             this.newton.rankContent(
+                (res) => this.addLogRow("rankContent OK: "+JSON.stringify(res)),
+                (err) => this.addLogRow("rankContent ERR "+err),
+                this.state.contentIdRank,
+                "CONSUMPTION"
+              )
+            }}
+          disabled={!this.state.initDone}
+        >rankContent</Button>
+        </section>
+
+        <section style={{textAlign: 'center'}}>
+          <p>
+            <Input
+              value={this.state.timedEventName}
+              onChange={(e) => {this.setState({timedEventName:e.target.value})}}
+              modifier='underbar'
+              disabled={!this.state.initDone}
+              float
+              placeholder='Timed Event Name' />
+          </p>
+        <Button
+          onClick={() => {
+             this.newton.timedEventStart(
+                (res) => this.addLogRow("timedEventStart OK: "+JSON.stringify(res)),
+                (err) => this.addLogRow("timedEventStart ERR "+err),
+                this.state.timedEventName
+              )
+            }}
+          disabled={!this.state.initDone}
+        >timedEventStart</Button>
+        <Button
+          onClick={() => {
+             this.newton.timedEventStop(
+                (res) => this.addLogRow("timedEventStop OK: "+JSON.stringify(res)),
+                (err) => this.addLogRow("timedEventStop ERR "+err),
+                this.state.timedEventName
+              )
+            }}
+          disabled={!this.state.initDone}
+        >timedEventStop</Button>
+        </section>
+
+        <section style={{textAlign: 'center'}}>
+          <Button
+          onClick={() => {
+             this.newton.flowBegin(
+                (res) => this.addLogRow("flowBegin OK: "+JSON.stringify(res)),
+                (err) => this.addLogRow("flowBegin ERR "+err)
+              )
+            }}
+          disabled={!this.state.initDone}
+        >flowBegin</Button>
+        <Button
+          onClick={() => {
+             this.newton.flowCancel(
+                (res) => this.addLogRow("flowCancel OK: "+JSON.stringify(res)),
+                (err) => this.addLogRow("flowCancel ERR "+err)
+              )
+            }}
+          disabled={!this.state.initDone}
+        >flowCancel</Button>
+        <Button
+          onClick={() => {
+             this.newton.flowFail(
+                (res) => this.addLogRow("flowFail OK: "+JSON.stringify(res)),
+                (err) => this.addLogRow("flowFail ERR "+err)
+              )
+            }}
+          disabled={!this.state.initDone}
+        >flowFail</Button>
+        <Button
+          onClick={() => {
+             this.newton.flowStep(
+                (res) => this.addLogRow("flowStep OK: "+JSON.stringify(res)),
+                (err) => this.addLogRow("flowStep ERR "+err)
+              )
+            }}
+          disabled={!this.state.initDone}
+        >flowStep</Button>
+        <Button
+          onClick={() => {
+             this.newton.flowSucceed(
+                (res) => this.addLogRow("flowSucceed OK: "+JSON.stringify(res)),
+                (err) => this.addLogRow("flowSucceed ERR "+err)
+              )
+            }}
+          disabled={!this.state.initDone}
+        >flowSucceed</Button>
+        
         </section>
 
         <List

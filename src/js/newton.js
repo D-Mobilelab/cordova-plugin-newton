@@ -10,7 +10,8 @@ var exec = cordova.require('cordova/exec');
 var Newton = function(options) {
     this._handlers = {
         'notification': [],
-        'error': []
+        'error': [],
+        'initialized': []
     };
 
     // require options parameter
@@ -24,8 +25,8 @@ var Newton = function(options) {
     // triggered on registration and notification
     var that = this;
     var success = function(result) {
-        if (result && typeof result.registrationId !== 'undefined') {
-            that.emit('registration', result);
+        if (result && typeof result.initialized !== 'undefined') {
+            that.emit('initialized', result);
         } else if (result && result.additionalData && typeof result.additionalData.actionCallback !== 'undefined') {
             var executeFunctionByName = function(functionName, context /*, args */) {
                 var args = Array.prototype.slice.call(arguments, 2);
@@ -77,7 +78,7 @@ Newton.prototype.unregister = function(successCallback, errorCallback, options) 
     var cleanHandlersAndPassThrough = function() {
         if (!options) {
             that._handlers = {
-                'registration': [],
+                'initialized': [],
                 'notification': [],
                 'error': []
             };
@@ -109,25 +110,6 @@ Newton.prototype.setApplicationIconBadgeNumber = function(successCallback, error
     exec(successCallback, errorCallback, 'Newton', 'setApplicationIconBadgeNumber', [{badge: badge}]);
 };
 
-/**
- * Get the application icon badge
- */
-
-Newton.prototype.getApplicationIconBadgeNumber = function(successCallback, errorCallback) {
-    if (!errorCallback) { errorCallback = function() {}; }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('Newton.getApplicationIconBadgeNumber failure: failure parameter not a function');
-        return;
-    }
-
-    if (typeof successCallback !== 'function') {
-        console.log('Newton.getApplicationIconBadgeNumber failure: success callback parameter must be a function');
-        return;
-    }
-
-    exec(successCallback, errorCallback, 'Newton', 'getApplicationIconBadgeNumber', []);
-};
 
 /**
  * Get the application icon badge
@@ -155,6 +137,7 @@ Newton.prototype.clearAllNotifications = function(successCallback, errorCallback
  *
  * The following events are supported:
  *
+ *   - initialized
  *   - notification
  *   - error
  *
@@ -238,36 +221,36 @@ Newton.prototype.finish = function(successCallback, errorCallback, id) {
     exec(successCallback, errorCallback, 'Newton', 'finish', [id]);
 };
 
-Newton.prototype.event = function(successCallback, errorCallback, eventName, eventParams) {
+Newton.prototype.sendEvent = function(successCallback, errorCallback, eventName, eventParams) {
     if (!successCallback) { successCallback = function() {}; }
     if (!errorCallback) { errorCallback = function() {}; }
     if (!eventParams) { eventParams = {}; }
 
     if (typeof successCallback !== 'function') {
-        console.log('event failure: success callback parameter must be a function');
+        console.log('sendEvent failure: success callback parameter must be a function');
         return;
     }
 
     if (typeof errorCallback !== 'function')  {
-        console.log('event failure: failure parameter not a function');
+        console.log('sendEvent failure: failure parameter not a function');
         return;
     }
 
     if (!eventName)  {
-        console.log('event failure: missing parameter eventName');
+        console.log('sendEvent failure: missing parameter eventName');
         return;
     }
 
     if (typeof eventParams !== 'object')  {
-        console.log('event failure: eventParams parameter not an object');
+        console.log('sendEvent failure: eventParams parameter not an object');
         return;
     }
 
-    exec(successCallback, errorCallback, 'Newton', 'event', [eventName, eventParams]);
+    exec(successCallback, errorCallback, 'Newton', 'sendEvent', [eventName, eventParams]);
 };
 
 
-Newton.prototype.login = function(successCallback, errorCallback, loginParameters) {
+Newton.prototype.startLoginFlowWithParams = function(successCallback, errorCallback, loginParameters) {
     if (!successCallback) { successCallback = function() {}; }
     if (!errorCallback) { errorCallback = function() {}; }
     if (!loginParameters) { loginParameters = {}; }
@@ -289,7 +272,7 @@ Newton.prototype.login = function(successCallback, errorCallback, loginParameter
 
     // FIXME: add check on loginParameters value, if the required ones are available
 
-    exec(successCallback, errorCallback, 'Newton', 'login', [loginParameters]);
+    exec(successCallback, errorCallback, 'Newton', 'startLoginFlowWithParams', [loginParameters]);
 };
 
 Newton.prototype.isUserLogged = function(successCallback, errorCallback) {
@@ -396,6 +379,14 @@ Newton.prototype.getOAuthProviders = function(successCallback, errorCallback) {
     exec(successCallback, errorCallback, 'Newton', 'getOAuthProviders', []);
 };
 
+/**
+ * rankContent
+ * @param successCallback
+ * @param errorCallback  
+ * @param contentId: int
+ * @param scope: CONSUMPTION | SOCIAL | EDITORIAL
+ * @param multipler: double
+ */
 Newton.prototype.rankContent = function(successCallback, errorCallback, contentId, scope, multipler) {
     if (!successCallback) { successCallback = function() {}; }
     if (!errorCallback) { errorCallback = function() {}; }
@@ -471,6 +462,151 @@ Newton.prototype.timedEventStop = function(successCallback, errorCallback, name,
     exec(successCallback, errorCallback, 'Newton', 'timedEventStop', [name, data]);
 };
 
+
+Newton.prototype.flowBegin = function(successCallback, errorCallback, flowName, flowParams) {
+    if (!successCallback) { successCallback = function() {}; }
+    if (!errorCallback) { errorCallback = function() {}; }
+    if (!flowParams) { flowParams = {}; }
+
+    if (typeof successCallback !== 'function') {
+        console.log('flowBegin failure: success callback parameter must be a function');
+        return;
+    }
+
+    if (typeof errorCallback !== 'function')  {
+        console.log('flowBegin failure: failure parameter not a function');
+        return;
+    }
+
+    if (!flowName)  {
+        console.log('flowBegin failure: missing parameter flowName');
+        return;
+    }
+
+    if (typeof flowParams !== 'object')  {
+        console.log('flowBegin failure: flowParams parameter not an object');
+        return;
+    }
+
+    exec(successCallback, errorCallback, 'Newton', 'flowBegin', [flowName, flowParams]);
+};
+
+
+Newton.prototype.flowCancel = function(successCallback, errorCallback, flowName, flowParams) {
+    if (!successCallback) { successCallback = function() {}; }
+    if (!errorCallback) { errorCallback = function() {}; }
+    if (!flowParams) { flowParams = {}; }
+
+    if (typeof successCallback !== 'function') {
+        console.log('flowCancel failure: success callback parameter must be a function');
+        return;
+    }
+
+    if (typeof errorCallback !== 'function')  {
+        console.log('flowCancel failure: failure parameter not a function');
+        return;
+    }
+
+    if (!flowName)  {
+        console.log('flowCancel failure: missing parameter flowName');
+        return;
+    }
+
+    if (typeof flowParams !== 'object')  {
+        console.log('flowCancel failure: flowParams parameter not an object');
+        return;
+    }
+
+    exec(successCallback, errorCallback, 'Newton', 'flowCancel', [flowName, flowParams]);
+};
+
+
+Newton.prototype.flowFail = function(successCallback, errorCallback, flowName, flowParams) {
+    if (!successCallback) { successCallback = function() {}; }
+    if (!errorCallback) { errorCallback = function() {}; }
+    if (!flowParams) { flowParams = {}; }
+
+    if (typeof successCallback !== 'function') {
+        console.log('flowFail failure: success callback parameter must be a function');
+        return;
+    }
+
+    if (typeof errorCallback !== 'function')  {
+        console.log('flowFail failure: failure parameter not a function');
+        return;
+    }
+
+    if (!flowName)  {
+        console.log('flowFail failure: missing parameter flowName');
+        return;
+    }
+
+    if (typeof flowParams !== 'object')  {
+        console.log('flowFail failure: flowParams parameter not an object');
+        return;
+    }
+
+    exec(successCallback, errorCallback, 'Newton', 'flowFail', [flowName, flowParams]);
+};
+
+
+Newton.prototype.flowStep = function(successCallback, errorCallback, flowName, flowParams) {
+    if (!successCallback) { successCallback = function() {}; }
+    if (!errorCallback) { errorCallback = function() {}; }
+    if (!flowParams) { flowParams = {}; }
+
+    if (typeof successCallback !== 'function') {
+        console.log('flowStep failure: success callback parameter must be a function');
+        return;
+    }
+
+    if (typeof errorCallback !== 'function')  {
+        console.log('flowStep failure: failure parameter not a function');
+        return;
+    }
+
+    if (!flowName)  {
+        console.log('flowStep failure: missing parameter flowName');
+        return;
+    }
+
+    if (typeof flowParams !== 'object')  {
+        console.log('flowStep failure: flowParams parameter not an object');
+        return;
+    }
+
+    exec(successCallback, errorCallback, 'Newton', 'flowStep', [flowName, flowParams]);
+};
+
+
+Newton.prototype.flowSucceed = function(successCallback, errorCallback, flowName, flowParams) {
+    if (!successCallback) { successCallback = function() {}; }
+    if (!errorCallback) { errorCallback = function() {}; }
+    if (!flowParams) { flowParams = {}; }
+
+    if (typeof successCallback !== 'function') {
+        console.log('flowSucceed failure: success callback parameter must be a function');
+        return;
+    }
+
+    if (typeof errorCallback !== 'function')  {
+        console.log('flowSucceed failure: failure parameter not a function');
+        return;
+    }
+
+    if (!flowName)  {
+        console.log('flowSucceed failure: missing parameter flowName');
+        return;
+    }
+
+    if (typeof flowParams !== 'object')  {
+        console.log('flowSucceed failure: flowParams parameter not an object');
+        return;
+    }
+
+    exec(successCallback, errorCallback, 'Newton', 'flowSucceed', [flowName, flowParams]);
+};
+
 /*!
  * Newton Plugin.
  */
@@ -490,7 +626,7 @@ module.exports = {
         return new Newton(options);
     },
 
-    //hasPermission: function(successCallback, errorCallback) {
-    //    exec(successCallback, errorCallback, 'Newton', 'hasPermission', []);
-    //},
+    hasPermission: function(successCallback, errorCallback) {
+        exec(successCallback, errorCallback, 'Newton', 'hasPermission', []);
+    },
 };

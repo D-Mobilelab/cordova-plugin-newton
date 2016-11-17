@@ -111,7 +111,7 @@ public class NewtonPlugin extends CordovaPlugin {
 
                     try {
                         jo = data.getJSONObject(0);
-                        customDataJo = jo.getJSONObject("customData");
+                        customDataJo = jo.optJSONObject("customData");
 
                     } catch (JSONException e) {
                         Log.e(LOG_TAG, "[action: init] parameters error:" + e.getMessage(), e);
@@ -120,13 +120,18 @@ public class NewtonPlugin extends CordovaPlugin {
                     }
 
                     SimpleObject customData = null;
-                    try {
-                        customData = SimpleObject.fromJSONObject(customDataJo);
-                    } catch (SimpleObjectException e) {
-                        Log.e(LOG_TAG, "[action: init] SimpleObject parameters error:" + e.getMessage(), e);
-                        callbackContext.error("Invalid parameters, cannot convert to SimpleObject: "+e.getMessage());
-                        return;
+                    if (customDataJo == null) {
+                        customData = new SimpleObject();
+                    } else {
+                        try {
+                            customData = SimpleObject.fromJSONObject(customDataJo);
+                        } catch (SimpleObjectException e) {
+                            Log.e(LOG_TAG, "[action: init] SimpleObject parameters error:" + e.getMessage(), e);
+                            callbackContext.error("Invalid parameters, cannot convert to SimpleObject: "+e.getMessage());
+                            return;
+                        }
                     }
+
                     // force hybrid true
                     customData.setBool("hybrid", true);
 
@@ -224,10 +229,12 @@ public class NewtonPlugin extends CordovaPlugin {
                             }
                         });
 
-                        PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
-                        pluginResult.setKeepCallback(true);
-                        pushContext.sendPluginResult(pluginResult);
+                        // emit initialization finished
+                        JSONObject initFinished = new JSONObject();
+                        initFinished.put("initialized", true);
+                        pushContext.success(initFinished);
 
+                        // if there are any push saved emit them
                         if (!gCachedPushes.isEmpty()) {
                             Log.v(LOG_TAG, "sending cached extras");
                             synchronized(gCachedPushes) {
@@ -239,8 +246,10 @@ public class NewtonPlugin extends CordovaPlugin {
                             gCachedPushes.clear();
                         }
 
+
+
                     } catch (NewtonException e) {
-                        Log.e(LOG_TAG, "NewtonException- Newton initialization error:" + e.getMessage(), e);
+                        Log.e(LOG_TAG, "NewtonException - Newton initialization error:" + e.getMessage(), e);
                         callbackContext.error("NewtonException - Newton initialization error: "+e.getMessage());
 
                     } catch (PushRegistrationException e) {
@@ -249,6 +258,9 @@ public class NewtonPlugin extends CordovaPlugin {
 
                         Log.e(LOG_TAG, "PushRegistrationException - Newton initialization error:" + e.getMessage(), e);
                         callbackContext.error("PushRegistrationException - Newton initialization error: "+e.getMessage());
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "JSONException - JSON with initialization result error:" + e.getMessage(), e);
+                        callbackContext.error("JSONException - JSON with initialization result error: "+e.getMessage());
                     }
                 }
             });
@@ -259,6 +271,7 @@ public class NewtonPlugin extends CordovaPlugin {
 
                     // FIXME: what to do here ? remove reference to pushContext ?
                     pushContext = null;
+                    loginContext = null;
 
                     callbackContext.success();
                 }
@@ -306,7 +319,7 @@ public class NewtonPlugin extends CordovaPlugin {
                 }
             });
         }
-        else if ("event".equals(action)) {
+        else if ("sendEvent".equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
@@ -319,7 +332,7 @@ public class NewtonPlugin extends CordovaPlugin {
                         eventParams = data.getJSONObject(1);
 
                     } catch (JSONException e) {
-                        Log.e(LOG_TAG, "[action: event] JSON parameters error:" + e.getMessage(), e);
+                        Log.e(LOG_TAG, "[action: sendEvent] JSON parameters error:" + e.getMessage(), e);
                         callbackContext.error("Invalid parameters: "+e.getMessage());
                         return;
                     }
@@ -327,7 +340,7 @@ public class NewtonPlugin extends CordovaPlugin {
                     try {
                         eventParamsSO = SimpleObject.fromJSONObject(eventParams);
                     } catch (SimpleObjectException e) {
-                        Log.e(LOG_TAG, "[action: event] SimpleObject parameters error:" + e.getMessage(), e);
+                        Log.e(LOG_TAG, "[action: sendEvent] SimpleObject parameters error:" + e.getMessage(), e);
                         callbackContext.error("Invalid parameters, cannot convert to SimpleObject: "+e.getMessage());
                         return;
                     }
@@ -335,7 +348,7 @@ public class NewtonPlugin extends CordovaPlugin {
                     try {
                         Newton.getSharedInstance().sendEvent(eventName, eventParamsSO);
                     } catch (NewtonException e) {
-                        Log.e(LOG_TAG, "[action: event] Newton sendEvent error:" + e.getMessage(), e);
+                        Log.e(LOG_TAG, "[action: sendEvent] Newton sendEvent error:" + e.getMessage(), e);
                         callbackContext.error("NewtonException: "+e.getMessage());
                         return;
                     }
@@ -343,7 +356,7 @@ public class NewtonPlugin extends CordovaPlugin {
                 }
             });
         }
-        else if ("login".equals(action)) {
+        else if ("startLoginFlowWithParams".equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
@@ -374,14 +387,14 @@ public class NewtonPlugin extends CordovaPlugin {
 
                             @Override
                             public void onFailure(NewtonError newtonError) {
-                                Log.e(LOG_TAG, "[action: login] Flow failure:"+newtonError.getMessage());
+                                Log.e(LOG_TAG, "[action: startLoginFlowWithParams] Flow failure:"+newtonError.getMessage());
                                 JSONObject joNewtonError = new JSONObject();
                                 try {
                                     joNewtonError.put("error", true);
                                     joNewtonError.put("errorDescription", newtonError.getMessage());
 
                                 } catch (JSONException e) {
-                                    Log.e(LOG_TAG, "[action: login] Flow failure error on reporting:"+e.getMessage());
+                                    Log.e(LOG_TAG, "[action: startLoginFlowWithParams] Flow failure error on reporting:"+e.getMessage());
 
                                     PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR);
                                     pluginResult.setKeepCallback(true);
@@ -412,8 +425,8 @@ public class NewtonPlugin extends CordovaPlugin {
                                 loginOption = LoginOptions.valueOf(key);
                             }
                             catch (IllegalArgumentException e) {
-                                Log.e(LOG_TAG, "[action: login] JSON parameters error:'"+key+"' error: "+e.getMessage(), e);
-                                callbackContext.error("Invalid login option: '"+key+"' error: "+e.getMessage());
+                                Log.e(LOG_TAG, "[action: startLoginFlowWithParams] JSON parameters error:'"+key+"' error: "+e.getMessage(), e);
+                                callbackContext.error("Invalid startLoginFlowWithParams param: '"+key+"' error: "+e.getMessage());
                                 return;
                             }
 
@@ -600,8 +613,13 @@ public class NewtonPlugin extends CordovaPlugin {
                     try {
                         List<String> oAuthProviders = Newton.getSharedInstance().getOAuthProviders();
 
+                        JSONArray jArray = new JSONArray();
+                        for (String oAuthProvider : oAuthProviders) {
+                            jArray.put(oAuthProvider);
+                        }
+
                         JSONObject jo = new JSONObject();
-                        jo.put("oAuthProviders", oAuthProviders.toArray());
+                        jo.put("oAuthProviders", jArray);
                         callbackContext.success(jo);
 
                     } catch (NewtonNotInitializedException e) {
@@ -693,6 +711,151 @@ public class NewtonPlugin extends CordovaPlugin {
                         callbackContext.error("Newton: "+e.getMessage());
                     } catch (SimpleObjectException e) {
                         Log.e(LOG_TAG, "[action: timedEventStop] SimpleObject error:" + e.getMessage(), e);
+                        callbackContext.error("SimpleObject: "+e.getMessage());
+                    }
+                }
+            });
+        }
+        else if ("flowBegin".equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+                        String name = data.getString(0);
+                        JSONObject dataJo = data.getJSONObject(1);
+                        SimpleObject dataSo = SimpleObject.fromJSONObject(dataJo);
+
+                        Newton.getSharedInstance().flowBegin(name, dataSo);
+                        callbackContext.success();
+
+                    } catch (NewtonNotInitializedException e) {
+                        Log.e(LOG_TAG, "[action: flowBegin] NewtonNotInitialized error:" + e.getMessage(), e);
+                        callbackContext.error("NewtonNotInitialized: "+e.getMessage());
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "[action: flowBegin] JSON error:" + e.getMessage(), e);
+                        callbackContext.error("JSON: "+e.getMessage());
+                    } catch (NewtonException e) {
+                        Log.e(LOG_TAG, "[action: flowBegin] Newton error:" + e.getMessage(), e);
+                        callbackContext.error("Newton: "+e.getMessage());
+                    } catch (SimpleObjectException e) {
+                        Log.e(LOG_TAG, "[action: flowBegin] SimpleObject error:" + e.getMessage(), e);
+                        callbackContext.error("SimpleObject: "+e.getMessage());
+                    }
+                }
+            });
+        }
+        else if ("flowCancel".equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+                        String name = data.getString(0);
+                        JSONObject dataJo = data.getJSONObject(1);
+                        SimpleObject dataSo = SimpleObject.fromJSONObject(dataJo);
+
+                        Newton.getSharedInstance().flowCancel(name, dataSo);
+                        callbackContext.success();
+
+                    } catch (NewtonNotInitializedException e) {
+                        Log.e(LOG_TAG, "[action: flowCancel] NewtonNotInitialized error:" + e.getMessage(), e);
+                        callbackContext.error("NewtonNotInitialized: "+e.getMessage());
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "[action: flowCancel] JSON error:" + e.getMessage(), e);
+                        callbackContext.error("JSON: "+e.getMessage());
+                    } catch (NewtonException e) {
+                        Log.e(LOG_TAG, "[action: flowCancel] Newton error:" + e.getMessage(), e);
+                        callbackContext.error("Newton: "+e.getMessage());
+                    } catch (SimpleObjectException e) {
+                        Log.e(LOG_TAG, "[action: flowCancel] SimpleObject error:" + e.getMessage(), e);
+                        callbackContext.error("SimpleObject: "+e.getMessage());
+                    }
+                }
+            });
+        }
+        else if ("flowFail".equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+                        String name = data.getString(0);
+                        JSONObject dataJo = data.getJSONObject(1);
+                        SimpleObject dataSo = SimpleObject.fromJSONObject(dataJo);
+
+                        Newton.getSharedInstance().flowFail(name, dataSo);
+                        callbackContext.success();
+
+                    } catch (NewtonNotInitializedException e) {
+                        Log.e(LOG_TAG, "[action: flowFail] NewtonNotInitialized error:" + e.getMessage(), e);
+                        callbackContext.error("NewtonNotInitialized: "+e.getMessage());
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "[action: flowFail] JSON error:" + e.getMessage(), e);
+                        callbackContext.error("JSON: "+e.getMessage());
+                    } catch (NewtonException e) {
+                        Log.e(LOG_TAG, "[action: flowFail] Newton error:" + e.getMessage(), e);
+                        callbackContext.error("Newton: "+e.getMessage());
+                    } catch (SimpleObjectException e) {
+                        Log.e(LOG_TAG, "[action: flowFail] SimpleObject error:" + e.getMessage(), e);
+                        callbackContext.error("SimpleObject: "+e.getMessage());
+                    }
+                }
+            });
+        }
+        else if ("flowStep".equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+                        String name = data.getString(0);
+                        JSONObject dataJo = data.getJSONObject(1);
+                        SimpleObject dataSo = SimpleObject.fromJSONObject(dataJo);
+
+                        Newton.getSharedInstance().flowStep(name, dataSo);
+                        callbackContext.success();
+
+                    } catch (NewtonNotInitializedException e) {
+                        Log.e(LOG_TAG, "[action: flowStep] NewtonNotInitialized error:" + e.getMessage(), e);
+                        callbackContext.error("NewtonNotInitialized: "+e.getMessage());
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "[action: flowStep] JSON error:" + e.getMessage(), e);
+                        callbackContext.error("JSON: "+e.getMessage());
+                    } catch (NewtonException e) {
+                        Log.e(LOG_TAG, "[action: flowStep] Newton error:" + e.getMessage(), e);
+                        callbackContext.error("Newton: "+e.getMessage());
+                    } catch (SimpleObjectException e) {
+                        Log.e(LOG_TAG, "[action: flowStep] SimpleObject error:" + e.getMessage(), e);
+                        callbackContext.error("SimpleObject: "+e.getMessage());
+                    }
+                }
+            });
+        }
+        else if ("flowSucceed".equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+                        String name = data.getString(0);
+                        JSONObject dataJo = data.getJSONObject(1);
+                        SimpleObject dataSo = SimpleObject.fromJSONObject(dataJo);
+
+                        Newton.getSharedInstance().flowSucceed(name, dataSo);
+                        callbackContext.success();
+
+                    } catch (NewtonNotInitializedException e) {
+                        Log.e(LOG_TAG, "[action: flowSucceed] NewtonNotInitialized error:" + e.getMessage(), e);
+                        callbackContext.error("NewtonNotInitialized: "+e.getMessage());
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "[action: flowSucceed] JSON error:" + e.getMessage(), e);
+                        callbackContext.error("JSON: "+e.getMessage());
+                    } catch (NewtonException e) {
+                        Log.e(LOG_TAG, "[action: flowSucceed] Newton error:" + e.getMessage(), e);
+                        callbackContext.error("Newton: "+e.getMessage());
+                    } catch (SimpleObjectException e) {
+                        Log.e(LOG_TAG, "[action: flowSucceed] SimpleObject error:" + e.getMessage(), e);
                         callbackContext.error("SimpleObject: "+e.getMessage());
                     }
                 }
