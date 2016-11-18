@@ -14,7 +14,9 @@ class App extends React.Component {
       initDone: false,
       receivedNotifications: 0,
       environment: "",
-      badgeNum: 0
+      badgeNum: 0,
+      flowName: "",
+      timedEventName: ""
     };
   }
 
@@ -105,7 +107,7 @@ class App extends React.Component {
           <p>
             Set badge number:
             <Range
-              onChange={() => {
+              onChange={(e) => {
                 let val = e.target.value
                 this.setState({badgeNum: val})
                 this.newton.setApplicationIconBadgeNumber(
@@ -114,7 +116,7 @@ class App extends React.Component {
                   val
                 )
               }}
-              disabled={this.state.initDone}
+              disabled={!this.state.initDone}
               value={this.state.badgeNum}
               min={0}
               max={50}
@@ -273,11 +275,21 @@ class App extends React.Component {
         </section>
 
         <section style={{textAlign: 'center'}}>
+          <p>
+            <Input
+              value={this.state.flowName}
+              onChange={(e) => {this.setState({flowName:e.target.value})}}
+              modifier='underbar'
+              disabled={!this.state.initDone}
+              float
+              placeholder='Flow Name' />
+          </p>
           <Button
           onClick={() => {
              this.newton.flowBegin(
                 (res) => this.addLogRow("flowBegin OK: "+JSON.stringify(res)),
-                (err) => this.addLogRow("flowBegin ERR "+err)
+                (err) => this.addLogRow("flowBegin ERR "+err),
+                this.state.flowName
               )
             }}
           disabled={!this.state.initDone}
@@ -286,7 +298,8 @@ class App extends React.Component {
           onClick={() => {
              this.newton.flowCancel(
                 (res) => this.addLogRow("flowCancel OK: "+JSON.stringify(res)),
-                (err) => this.addLogRow("flowCancel ERR "+err)
+                (err) => this.addLogRow("flowCancel ERR "+err),
+                this.state.flowName
               )
             }}
           disabled={!this.state.initDone}
@@ -295,7 +308,8 @@ class App extends React.Component {
           onClick={() => {
              this.newton.flowFail(
                 (res) => this.addLogRow("flowFail OK: "+JSON.stringify(res)),
-                (err) => this.addLogRow("flowFail ERR "+err)
+                (err) => this.addLogRow("flowFail ERR "+err),
+                this.state.flowName
               )
             }}
           disabled={!this.state.initDone}
@@ -304,7 +318,8 @@ class App extends React.Component {
           onClick={() => {
              this.newton.flowStep(
                 (res) => this.addLogRow("flowStep OK: "+JSON.stringify(res)),
-                (err) => this.addLogRow("flowStep ERR "+err)
+                (err) => this.addLogRow("flowStep ERR "+err),
+                this.state.flowName
               )
             }}
           disabled={!this.state.initDone}
@@ -313,7 +328,8 @@ class App extends React.Component {
           onClick={() => {
              this.newton.flowSucceed(
                 (res) => this.addLogRow("flowSucceed OK: "+JSON.stringify(res)),
-                (err) => this.addLogRow("flowSucceed ERR "+err)
+                (err) => this.addLogRow("flowSucceed ERR "+err),
+                this.state.flowName
               )
             }}
           disabled={!this.state.initDone}
