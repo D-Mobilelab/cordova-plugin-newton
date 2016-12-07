@@ -3,6 +3,7 @@
   "version": "2.1.1+20160920.1",
   "description": "",
   "dependencies": {
+    "newton-adapter": "^1.6.0",
     "onsenui": "^2.0.0-rc.5",
     "react": "^15.0.2",
     "react-dom": "^15.0.2",

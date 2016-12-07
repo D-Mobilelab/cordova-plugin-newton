@@ -1,18 +1,31 @@
 var exec = cordova.require('cordova/exec');
 
+
 /**
- * Newton constructor.
- *
- * @param {Object} options to initiate Push Notifications.
- * @return {Newton} instance that can be monitored and cancelled.
+ * Newton public interface, implement the same interface of Newton JS SDK
+ * where there are not callbacks on methods
  */
 
+/**
+ * 
+ * 
+ * Newton constructor.
+ *
+ * @param {Object} options to initiate Newton.
+ * @return {Newton} instance that can be used to send events and receive push notification.
+ */
 var Newton = function(options) {
     this._handlers = {
         'notification': [],
         'error': [],
         'initialized': []
     };
+
+    // FIXME: keep this updated so clients can request it syncronously
+    this._isUserLogged = false;
+
+    // this will be updated after initialization, but before initialized event
+    this._enviromentString = "UNKNOWN";
 
     // require options parameter
     if (typeof options === 'undefined') {
@@ -26,7 +39,17 @@ var Newton = function(options) {
     var that = this;
     var success = function(result) {
         if (result && typeof result.initialized !== 'undefined') {
-            that.emit('initialized', result);
+            // callback hell!!!
+            that._updateUserLogged(
+                function() {
+                    that._updateEnvString(
+                        function() {
+                            that.emit('initialized', result);
+                        }
+                    );
+                }
+            );
+
         } else if (result && result.additionalData && typeof result.additionalData.actionCallback !== 'undefined') {
             var executeFunctionByName = function(functionName, context /*, args */) {
                 var args = Array.prototype.slice.call(arguments, 2);
@@ -56,24 +79,43 @@ var Newton = function(options) {
     }, 10);
 };
 
+Newton.prototype._updateUserLogged = function(cbOnSuccess) {
+    var that = this;
+    NewtonPlugin.isUserLogged(
+        function(logged){
+            if (logged) {
+                that._isUserLogged = logged.isUserLogged;
+            }
+            if (cbOnSuccess && (typeof cbOnSuccess === 'function')) {
+                cbOnSuccess.apply(null, arguments);
+            }
+        },
+        cordovaCallback.getFailFunc("isUserLogged")
+    );
+};
+
+Newton.prototype._updateEnvString = function(cbOnSuccess) {
+    var that = this;
+    NewtonPlugin.getEnvironmentString(
+        function(env){
+            if (env) {
+                that._enviromentString = env["environmentString"];
+            }
+
+            if (cbOnSuccess && (typeof cbOnSuccess === 'function')) {
+                cbOnSuccess.apply(null, arguments);
+            }
+        },
+        cordovaCallback.getFailFunc("getEnvironmentString")
+    );
+};
 
 /**
  * Unregister from push notifications
  */
 
-Newton.prototype.unregister = function(successCallback, errorCallback, options) {
-    if (!errorCallback) { errorCallback = function() {}; }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('PushNotification.unregister failure: failure parameter not a function');
-        return;
-    }
-
-    if (typeof successCallback !== 'function') {
-        console.log('PushNotification.unregister failure: success callback parameter must be a function');
-        return;
-    }
-
+Newton.prototype.unregister = function(options) {
+    
     var that = this;
     var cleanHandlersAndPassThrough = function() {
         if (!options) {
@@ -83,54 +125,12 @@ Newton.prototype.unregister = function(successCallback, errorCallback, options) 
                 'error': []
             };
         }
-        successCallback();
+        cordovaCallback.success("unregister");
     };
 
-    exec(cleanHandlersAndPassThrough, errorCallback, 'Newton', 'unregister', [options]);
+    exec(success, cordovaCallback.getSuccessFunc("unregister"), 'Newton', 'unregister', [options]);
 };
 
-
-/**
- * Call this to set the application icon badge
- */
-
-Newton.prototype.setApplicationIconBadgeNumber = function(successCallback, errorCallback, badge) {
-    if (!errorCallback) { errorCallback = function() {}; }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('Newton.setApplicationIconBadgeNumber failure: failure parameter not a function');
-        return;
-    }
-
-    if (typeof successCallback !== 'function') {
-        console.log('Newton.setApplicationIconBadgeNumber failure: success callback parameter must be a function');
-        return;
-    }
-
-    exec(successCallback, errorCallback, 'Newton', 'setApplicationIconBadgeNumber', [{badge: badge}]);
-};
-
-
-/**
- * Get the application icon badge
- */
-
-Newton.prototype.clearAllNotifications = function(successCallback, errorCallback) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('Newton.clearAllNotifications failure: failure parameter not a function');
-        return;
-    }
-
-    if (typeof successCallback !== 'function') {
-        console.log('Newton.clearAllNotifications failure: success callback parameter must be a function');
-        return;
-    }
-
-    exec(successCallback, errorCallback, 'Newton', 'clearAllNotifications', []);
-};
 
 /**
  * Listen for an event.
@@ -203,38 +203,37 @@ Newton.prototype.emit = function() {
  * Needed for iOS
  * 
  */
-Newton.prototype.finish = function(successCallback, errorCallback, id) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
+Newton.prototype.finish = function(id) {
     if (!id) { id = 'handler'; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('finish failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('finish failure: failure parameter not a function');
-        return;
-    }
-
-    exec(successCallback, errorCallback, 'Newton', 'finish', [id]);
+    
+    NewtonPlugin.finish(
+        cordovaCallback.getSuccessFunc("finish"),
+        cordovaCallback.getFailFunc("finish"),
+        id
+    );
 };
 
-Newton.prototype.sendEvent = function(successCallback, errorCallback, eventName, eventParams) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
+/**
+ * Call this to set the application icon badge
+ */
+Newton.prototype.setApplicationIconBadgeNumber = function(badge) {
+    NewtonPlugin.setApplicationIconBadgeNumber(
+        cordovaCallback.getSuccessFunc("setApplicationIconBadgeNumber"),
+        cordovaCallback.getFailFunc("setApplicationIconBadgeNumber"),
+        badge
+    );
+};
+
+
+Newton.prototype.clearAllNotifications = function() {
+    NewtonPlugin.clearAllNotifications(
+        cordovaCallback.getSuccessFunc("clearAllNotifications"),
+        cordovaCallback.getFailFunc("clearAllNotifications")
+    );
+};
+
+Newton.prototype.sendEvent = function(eventName, eventParams) {
     if (!eventParams) { eventParams = {}; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('sendEvent failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('sendEvent failure: failure parameter not a function');
-        return;
-    }
 
     if (!eventName)  {
         console.log('sendEvent failure: missing parameter eventName');
@@ -246,179 +245,153 @@ Newton.prototype.sendEvent = function(successCallback, errorCallback, eventName,
         return;
     }
 
-    exec(successCallback, errorCallback, 'Newton', 'sendEvent', [eventName, eventParams]);
+    NewtonPlugin.sendEvent(
+        cordovaCallback.getSuccessFunc("sendEvent"),
+        cordovaCallback.getFailFunc("sendEvent"),
+        eventName,
+        eventParams
+    );
 };
 
 
-Newton.prototype.startLoginFlowWithParams = function(successCallback, errorCallback, loginParameters) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
-    if (!loginParameters) { loginParameters = {}; }
+/*
+.getExternalLoginFlow()
+.startLoginFlow();
+} else {
+.getCustomLoginFlow()
+.startLoginFlow();  
+*/
+var NewtonLoginBuilderFlowType = {
+    external: "external",
+    custom: "custom",
+    unknown: "unknown"
+};
+var NewtonLoginBuilder = function(newtonInstance) {
+    this.newtonInstance = newtonInstance;
+    this.customData = {};
+    this.onFlowCompleteCb = function() {console.log("[NewtonLoginBuilder] flow complete callback not set!")};
+    this.externalId = null;
+    this.customId = null;
+    this.flowType = NewtonLoginBuilderFlowType.unknown;
+};
+NewtonLoginBuilder.prototype.setCustomData = function(c) {
+    this.customData = c;
+    return this;
+};
+NewtonLoginBuilder.prototype.setOnFlowCompleteCallback = function(c) {
+    this.onFlowCompleteCb = c;
+    return this;    
+};
+NewtonLoginBuilder.prototype.setExternalID = function(id) {
+    this.externalId = id;
+    return this;    
+};
+NewtonLoginBuilder.prototype.setCustomID = function(id) {
+    this.customId = id;
+    return this;    
+};
+NewtonLoginBuilder.prototype.getExternalLoginFlow = function() {
+    this.flowType = NewtonLoginBuilderFlowType.external;
+    return this;
+};
+NewtonLoginBuilder.prototype.getCustomLoginFlow = function() {
+    this.flowType = NewtonLoginBuilderFlowType.custom;
+    return this;
+};
+NewtonLoginBuilder.prototype.startLoginFlow = function(c) {
+    var loginParameters = {
+        type: this.flowType
+    };
+    if (this.customData) {
+        loginParameters.customData = this.customData;
+    }
+    switch (this.flowType) {
+        case NewtonLoginBuilderFlowType.custom:
+            loginParameters.customId = this.customId;
+            break;
 
-    if (typeof successCallback !== 'function') {
-        console.log('event failure: success callback parameter must be a function');
-        return;
+        case NewtonLoginBuilderFlowType.external:
+            loginParameters.externalId = this.externalId;
+            break;
+    
+        default:
+            console.error("[NewtonLoginBuilder] flow type unkown!");
+            break;
     }
 
-    if (typeof errorCallback !== 'function')  {
-        console.log('event failure: failure parameter not a function');
-        return;
-    }
-
-    if (typeof loginParameters !== 'object')  {
-        console.log('event failure: eventParams parameter not an object');
-        return;
-    }
-
-    // FIXME: add check on loginParameters value, if the required ones are available
-
-    exec(successCallback, errorCallback, 'Newton', 'startLoginFlowWithParams', [loginParameters]);
+    var that = this;
+    NewtonPlugin.startLoginFlowWithParams(
+        function() {
+            if (that.onFlowCompleteCb && (typeof that.onFlowCompleteCb === 'function')) {
+                that.onFlowCompleteCb();
+            }
+        },
+        cordovaCallback.getFailFunc("startLoginFlowWithParams"),
+        loginParameters
+    );
 };
 
-Newton.prototype.isUserLogged = function(successCallback, errorCallback) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
+Newton.prototype.getLoginBuilder = function() {
+    return new NewtonLoginBuilder(this);
+};
 
-    if (typeof successCallback !== 'function') {
-        console.log('isUserLogged failure: success callback parameter must be a function');
-        return;
-    }
+Newton.prototype.isUserLogged = function() {
+    return this._isUserLogged;
+};
 
-    if (typeof errorCallback !== 'function')  {
-        console.log('isUserLogged failure: failure parameter not a function');
-        return;
-    }
-
-    exec(successCallback, errorCallback, 'Newton', 'isUserLogged', []);
+Newton.prototype.getEnvironmentString = function() {
+    return this._enviromentString;
 };
 
 
-Newton.prototype.getEnvironmentString = function(successCallback, errorCallback) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('getEnvironmentString failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('getEnvironmentString failure: failure parameter not a function');
-        return;
-    }
-
-    exec(successCallback, errorCallback, 'Newton', 'getEnvironmentString', []);
+Newton.prototype.userLogout = function() {
+    var that = this;
+    NewtonPlugin.userLogout(
+        cordovaCallback.getSuccessFunc("userLogout", function(){
+            that._updateUserLogged();
+        }),
+        cordovaCallback.getFailFunc("userLogout")
+    );
 };
 
-
-Newton.prototype.userLogout = function(successCallback, errorCallback) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('userLogout failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('userLogout failure: failure parameter not a function');
-        return;
-    }
-
-    exec(successCallback, errorCallback, 'Newton', 'userLogout', []);
-};
-
+// FIXME: callback required here
 Newton.prototype.getUserMetaInfo = function(successCallback, errorCallback) {
     if (!successCallback) { successCallback = function() {}; }
     if (!errorCallback) { errorCallback = function() {}; }
 
-    if (typeof successCallback !== 'function') {
-        console.log('getUserMetaInfo failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('getUserMetaInfo failure: failure parameter not a function');
-        return;
-    }
-
-    exec(successCallback, errorCallback, 'Newton', 'getUserMetaInfo', []);
+    NewtonPlugin.getUserMetaInfo(successCallback, errorCallback);
 };
 
+// FIXME: callback required here
 Newton.prototype.getUserToken = function(successCallback, errorCallback) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('getUserToken failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('getUserToken failure: failure parameter not a function');
-        return;
-    }
-
-    exec(successCallback, errorCallback, 'Newton', 'getUserToken', []);
+    NewtonPlugin.getUserToken(successCallback, errorCallback);
 };
 
+// FIXME: callback required here
 Newton.prototype.getOAuthProviders = function(successCallback, errorCallback) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('getOAuthProviders failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('getOAuthProviders failure: failure parameter not a function');
-        return;
-    }
-
-    exec(successCallback, errorCallback, 'Newton', 'getOAuthProviders', []);
+    NewtonPlugin.getOAuthProviders(successCallback, errorCallback);
 };
 
 /**
  * rankContent
- * @param successCallback
- * @param errorCallback  
  * @param contentId: int
  * @param scope: CONSUMPTION | SOCIAL | EDITORIAL
  * @param multipler: double
  */
-Newton.prototype.rankContent = function(successCallback, errorCallback, contentId, scope, multipler) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
+Newton.prototype.rankContent = function(contentId, scope, multipler) {
     if (!multipler) { multipler = 1.0; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('rankContent failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('rankContent failure: failure parameter not a function');
-        return;
-    }
-
-    exec(successCallback, errorCallback, 'Newton', 'rankContent', [contentId, scope, multipler]);
+    
+    NewtonPlugin.rankContent(
+        cordovaCallback.getSuccessFunc("rankContent"),
+        cordovaCallback.getFailFunc("rankContent"),
+        contentId,
+        scope,
+        multipler
+    );
 };
 
-Newton.prototype.timedEventStart = function(successCallback, errorCallback, name, data) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
+Newton.prototype.timedEventStart = function(name, data) {
     if (!data) { data = {}; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('timedEventStart failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('timedEventStart failure: failure parameter not a function');
-        return;
-    }
 
     if (!name)  {
         console.log('timedEventStart failure: name parameter missing');
@@ -430,24 +403,17 @@ Newton.prototype.timedEventStart = function(successCallback, errorCallback, name
         return;
     }
 
-    exec(successCallback, errorCallback, 'Newton', 'timedEventStart', [name, data]);
+    NewtonPlugin.timedEventStart(
+        cordovaCallback.getSuccessFunc("timedEventStart"),
+        cordovaCallback.getFailFunc("timedEventStart"),
+        name,
+        data
+    );
 };
 
 
-Newton.prototype.timedEventStop = function(successCallback, errorCallback, name, data) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
+Newton.prototype.timedEventStop = function(name, data) {
     if (!data) { data = {}; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('timedEventStop failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('timedEventStop failure: failure parameter not a function');
-        return;
-    }
 
     if (!name)  {
         console.log('timedEventStop failure: name parameter missing');
@@ -459,24 +425,17 @@ Newton.prototype.timedEventStop = function(successCallback, errorCallback, name,
         return;
     }
 
-    exec(successCallback, errorCallback, 'Newton', 'timedEventStop', [name, data]);
+    NewtonPlugin.timedEventStop(
+        cordovaCallback.getSuccessFunc("timedEventStop"),
+        cordovaCallback.getFailFunc("timedEventStop"),
+        name,
+        data
+    );
 };
 
 
-Newton.prototype.flowBegin = function(successCallback, errorCallback, flowName, flowParams) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
+Newton.prototype.flowBegin = function(flowName, flowParams) {
     if (!flowParams) { flowParams = {}; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('flowBegin failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('flowBegin failure: failure parameter not a function');
-        return;
-    }
 
     if (!flowName)  {
         console.log('flowBegin failure: missing parameter flowName');
@@ -488,24 +447,17 @@ Newton.prototype.flowBegin = function(successCallback, errorCallback, flowName, 
         return;
     }
 
-    exec(successCallback, errorCallback, 'Newton', 'flowBegin', [flowName, flowParams]);
+    NewtonPlugin.flowBegin(
+        cordovaCallback.getSuccessFunc("flowBegin"),
+        cordovaCallback.getFailFunc("flowBegin"),
+        flowName,
+        flowParams
+    );
 };
 
 
-Newton.prototype.flowCancel = function(successCallback, errorCallback, flowName, flowParams) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
+Newton.prototype.flowCancel = function(flowName, flowParams) {
     if (!flowParams) { flowParams = {}; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('flowCancel failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('flowCancel failure: failure parameter not a function');
-        return;
-    }
 
     if (!flowName)  {
         console.log('flowCancel failure: missing parameter flowName');
@@ -517,24 +469,17 @@ Newton.prototype.flowCancel = function(successCallback, errorCallback, flowName,
         return;
     }
 
-    exec(successCallback, errorCallback, 'Newton', 'flowCancel', [flowName, flowParams]);
+    NewtonPlugin.flowCancel(
+        cordovaCallback.getSuccessFunc("flowCancel"),
+        cordovaCallback.getFailFunc("flowCancel"),
+        flowName,
+        flowParams
+    );
 };
 
 
-Newton.prototype.flowFail = function(successCallback, errorCallback, flowName, flowParams) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
+Newton.prototype.flowFail = function(flowName, flowParams) {
     if (!flowParams) { flowParams = {}; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('flowFail failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('flowFail failure: failure parameter not a function');
-        return;
-    }
 
     if (!flowName)  {
         console.log('flowFail failure: missing parameter flowName');
@@ -546,24 +491,17 @@ Newton.prototype.flowFail = function(successCallback, errorCallback, flowName, f
         return;
     }
 
-    exec(successCallback, errorCallback, 'Newton', 'flowFail', [flowName, flowParams]);
+    NewtonPlugin.flowFail(
+        cordovaCallback.getSuccessFunc("flowFail"),
+        cordovaCallback.getFailFunc("flowFail"),
+        flowName,
+        flowParams
+    );
 };
 
 
-Newton.prototype.flowStep = function(successCallback, errorCallback, flowName, flowParams) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
+Newton.prototype.flowStep = function(flowName, flowParams) {
     if (!flowParams) { flowParams = {}; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('flowStep failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('flowStep failure: failure parameter not a function');
-        return;
-    }
 
     if (!flowName)  {
         console.log('flowStep failure: missing parameter flowName');
@@ -575,24 +513,17 @@ Newton.prototype.flowStep = function(successCallback, errorCallback, flowName, f
         return;
     }
 
-    exec(successCallback, errorCallback, 'Newton', 'flowStep', [flowName, flowParams]);
+    NewtonPlugin.flowStep(
+        cordovaCallback.getSuccessFunc("flowStep"),
+        cordovaCallback.getFailFunc("flowStep"),
+        flowName,
+        flowParams
+    );
 };
 
 
-Newton.prototype.flowSucceed = function(successCallback, errorCallback, flowName, flowParams) {
-    if (!successCallback) { successCallback = function() {}; }
-    if (!errorCallback) { errorCallback = function() {}; }
+Newton.prototype.flowSucceed = function(flowName, flowParams) {
     if (!flowParams) { flowParams = {}; }
-
-    if (typeof successCallback !== 'function') {
-        console.log('flowSucceed failure: success callback parameter must be a function');
-        return;
-    }
-
-    if (typeof errorCallback !== 'function')  {
-        console.log('flowSucceed failure: failure parameter not a function');
-        return;
-    }
 
     if (!flowName)  {
         console.log('flowSucceed failure: missing parameter flowName');
@@ -604,29 +535,558 @@ Newton.prototype.flowSucceed = function(successCallback, errorCallback, flowName
         return;
     }
 
-    exec(successCallback, errorCallback, 'Newton', 'flowSucceed', [flowName, flowParams]);
+    NewtonPlugin.flowSucceed(
+        cordovaCallback.getSuccessFunc("flowSucceed"),
+        cordovaCallback.getFailFunc("flowSucceed"),
+        flowName,
+        flowParams
+    );
 };
 
-/*!
- * Newton Plugin.
- */
+/****************************/
 
-module.exports = {
+/**
+ * 
+ * interface to native platform Newton
+ * 
+ */
+var NewtonPlugin = {
+
     /**
-     * Register for Push Notifications.
-     *
-     * This method will instantiate a new copy of the Newton object
-     * and start the registration process.
-     *
-     * @param {Object} options
-     * @return {Newton} instance
+     * Call this to set the application icon badge
+     */
+    setApplicationIconBadgeNumber:  function(successCallback, errorCallback, badge) {
+        if (!errorCallback) { errorCallback = function() {}; }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('Newton.setApplicationIconBadgeNumber failure: failure parameter not a function');
+            return;
+        }
+
+        if (typeof successCallback !== 'function') {
+            console.log('Newton.setApplicationIconBadgeNumber failure: success callback parameter must be a function');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'setApplicationIconBadgeNumber', [{badge: badge}]);
+    },
+
+
+    /**
+     * Get the application icon badge
      */
 
-    init: function(options) {
-        return new Newton(options);
+    clearAllNotifications: function(successCallback, errorCallback) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('Newton.clearAllNotifications failure: failure parameter not a function');
+            return;
+        }
+
+        if (typeof successCallback !== 'function') {
+            console.log('Newton.clearAllNotifications failure: success callback parameter must be a function');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'clearAllNotifications', []);
+    },
+
+    /**
+     * 
+     * Needed for iOS
+     * 
+     */
+    finish: function(successCallback, errorCallback, id) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+        if (!id) { id = 'handler'; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('finish failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('finish failure: failure parameter not a function');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'finish', [id]);
+    },
+
+    sendEvent: function(successCallback, errorCallback, eventName, eventParams) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+        if (!eventParams) { eventParams = {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('sendEvent failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('sendEvent failure: failure parameter not a function');
+            return;
+        }
+
+        if (!eventName)  {
+            console.log('sendEvent failure: missing parameter eventName');
+            return;
+        }
+
+        if (typeof eventParams !== 'object')  {
+            console.log('sendEvent failure: eventParams parameter not an object');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'sendEvent', [eventName, eventParams]);
+    },
+
+
+    startLoginFlowWithParams: function(successCallback, errorCallback, loginParameters) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+        if (!loginParameters) { loginParameters = {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('event failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('event failure: failure parameter not a function');
+            return;
+        }
+
+        if (typeof loginParameters !== 'object')  {
+            console.log('event failure: eventParams parameter not an object');
+            return;
+        }
+
+        // FIXME: add check on loginParameters value, if the required ones are available
+
+        exec(successCallback, errorCallback, 'Newton', 'startLoginFlowWithParams', [loginParameters]);
+    },
+
+    isUserLogged: function(successCallback, errorCallback) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('isUserLogged failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('isUserLogged failure: failure parameter not a function');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'isUserLogged', []);
+    },
+
+    getEnvironmentString: function(successCallback, errorCallback) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('getEnvironmentString failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('getEnvironmentString failure: failure parameter not a function');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'getEnvironmentString', []);
+    },
+
+
+    userLogout: function(successCallback, errorCallback) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('userLogout failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('userLogout failure: failure parameter not a function');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'userLogout', []);
+    },
+
+    getUserMetaInfo: function(successCallback, errorCallback) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('getUserMetaInfo failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('getUserMetaInfo failure: failure parameter not a function');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'getUserMetaInfo', []);
+    },
+
+    getUserToken: function(successCallback, errorCallback) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('getUserToken failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('getUserToken failure: failure parameter not a function');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'getUserToken', []);
+    },
+
+    getOAuthProviders: function(successCallback, errorCallback) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('getOAuthProviders failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('getOAuthProviders failure: failure parameter not a function');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'getOAuthProviders', []);
+    },
+
+    /**
+     * rankContent
+     * @param successCallback
+     * @param errorCallback  
+     * @param contentId: int
+     * @param scope: CONSUMPTION | SOCIAL | EDITORIAL
+     * @param multipler: double
+     */
+    rankContent: function(successCallback, errorCallback, contentId, scope, multipler) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('rankContent failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('rankContent failure: failure parameter not a function');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'rankContent', [contentId, scope, multipler]);
+    },
+
+    timedEventStart: function(successCallback, errorCallback, name, data) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+        if (!data) { data = {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('timedEventStart failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('timedEventStart failure: failure parameter not a function');
+            return;
+        }
+
+        if (!name)  {
+            console.log('timedEventStart failure: name parameter missing');
+            return;
+        }
+
+        if (typeof data !== 'object')  {
+            console.log('timedEventStart failure: data parameter not an object');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'timedEventStart', [name, data]);
+    },
+
+
+    timedEventStop: function(successCallback, errorCallback, name, data) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+        if (!data) { data = {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('timedEventStop failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('timedEventStop failure: failure parameter not a function');
+            return;
+        }
+
+        if (!name)  {
+            console.log('timedEventStop failure: name parameter missing');
+            return;
+        }
+
+        if (typeof data !== 'object')  {
+            console.log('timedEventStop failure: data parameter not an object');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'timedEventStop', [name, data]);
+    },
+
+
+    flowBegin: function(successCallback, errorCallback, flowName, flowParams) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+        if (!flowParams) { flowParams = {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('flowBegin failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('flowBegin failure: failure parameter not a function');
+            return;
+        }
+
+        if (!flowName)  {
+            console.log('flowBegin failure: missing parameter flowName');
+            return;
+        }
+
+        if (typeof flowParams !== 'object')  {
+            console.log('flowBegin failure: flowParams parameter not an object');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'flowBegin', [flowName, flowParams]);
+    },
+
+
+    flowCancel: function(successCallback, errorCallback, flowName, flowParams) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+        if (!flowParams) { flowParams = {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('flowCancel failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('flowCancel failure: failure parameter not a function');
+            return;
+        }
+
+        if (!flowName)  {
+            console.log('flowCancel failure: missing parameter flowName');
+            return;
+        }
+
+        if (typeof flowParams !== 'object')  {
+            console.log('flowCancel failure: flowParams parameter not an object');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'flowCancel', [flowName, flowParams]);
+    },
+
+
+    flowFail: function(successCallback, errorCallback, flowName, flowParams) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+        if (!flowParams) { flowParams = {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('flowFail failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('flowFail failure: failure parameter not a function');
+            return;
+        }
+
+        if (!flowName)  {
+            console.log('flowFail failure: missing parameter flowName');
+            return;
+        }
+
+        if (typeof flowParams !== 'object')  {
+            console.log('flowFail failure: flowParams parameter not an object');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'flowFail', [flowName, flowParams]);
+    },
+
+
+    flowStep: function(successCallback, errorCallback, flowName, flowParams) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+        if (!flowParams) { flowParams = {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('flowStep failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('flowStep failure: failure parameter not a function');
+            return;
+        }
+
+        if (!flowName)  {
+            console.log('flowStep failure: missing parameter flowName');
+            return;
+        }
+
+        if (typeof flowParams !== 'object')  {
+            console.log('flowStep failure: flowParams parameter not an object');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'flowStep', [flowName, flowParams]);
+    },
+
+
+    flowSucceed: function(successCallback, errorCallback, flowName, flowParams) {
+        if (!successCallback) { successCallback = function() {}; }
+        if (!errorCallback) { errorCallback = function() {}; }
+        if (!flowParams) { flowParams = {}; }
+
+        if (typeof successCallback !== 'function') {
+            console.log('flowSucceed failure: success callback parameter must be a function');
+            return;
+        }
+
+        if (typeof errorCallback !== 'function')  {
+            console.log('flowSucceed failure: failure parameter not a function');
+            return;
+        }
+
+        if (!flowName)  {
+            console.log('flowSucceed failure: missing parameter flowName');
+            return;
+        }
+
+        if (typeof flowParams !== 'object')  {
+            console.log('flowSucceed failure: flowParams parameter not an object');
+            return;
+        }
+
+        exec(successCallback, errorCallback, 'Newton', 'flowSucceed', [flowName, flowParams]);
+    }
+
+};
+
+
+/*************/
+
+var cordovaCallback = (function(){
+    return {
+        success: function(funcName, args) {
+            var argsStr = "";
+            if (args && (args instanceof Array)) {
+                for (var i = 0; i < args.length; i++) {
+                    argsStr = argsStr + JSON.stringify(args[i]) + "; ";
+                }
+            }
+            console.log("["+funcName+"] Success! " + argsStr);
+        },
+        getSuccessFunc: function(funcName, cbOnSuccess) {
+            return function() {
+                cordovaCallback.success(funcName, arguments);
+                
+                if (cbOnSuccess && (typeof cbOnSuccess === 'function')) {
+                    cbOnSuccess.apply(null, arguments);
+                }
+            }
+        },
+        fail: function(funcName) {
+            var argsStr = "";
+            if (args && (args instanceof Array)) {
+                for (var i = 0; i < args.length; i++) {
+                    argsStr = argsStr + JSON.stringify(args[i]) + "; ";
+                }
+            }
+            console.error("["+funcName+"] Fail! " + argsStr);
+        },
+        getFailFunc: function(funcName) {
+            return function() {
+                cordovaCallback.fail(funcName, arguments);
+            }
+        },
+    };
+})();
+
+var newtonSingleton = (function() {
+    var newtonInstance;
+    return {
+        /**
+         * Return already instantiated Newton or initialize a new one and start the registration process
+         *
+         * @param {Object} options
+         * @return {Newton} instance
+         */
+        get: function(options) {
+            if (!newtonInstance) {
+                newtonInstance = new Newton(options);
+                return newtonInstance;
+            }
+            return newtonInstance;
+        }
+    };
+})();
+
+/**
+ * Newton Plugin.
+ */
+module.exports = {
+    
+    getSharedInstanceWithConfig: function(secretId, customData) {
+        var options = {
+            customData: customData
+        };
+        return newtonSingleton.get(options);
+    },
+
+    getSharedInstance: function() {
+        return newtonSingleton.get();
     },
 
     hasPermission: function(successCallback, errorCallback) {
         exec(successCallback, errorCallback, 'Newton', 'hasPermission', []);
+    },
+
+    SimpleObject: {
+        /**
+         * return the same object sent in input as the conversion is done on native code
+         */
+        fromJSONObject: function(jsonObject) {
+            return jsonObject;
+        }
     },
 };

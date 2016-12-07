@@ -8,3 +8,12 @@ Note that plugins can also include build-extras.gradle files via:
 
 modelli di plugin per le push:
 https://github.com/phonegap/phonegap-plugin-push/
+
+
+add this in config.xml of your application:
+
+<plugin name="cordova-plugin-settings-hook" spec="~0" />
+
+<platform name="android">
+        <preference name="android-applicationName" value="com.buongiorno.newton.cordova.NewtonApplication" />
+</platform>

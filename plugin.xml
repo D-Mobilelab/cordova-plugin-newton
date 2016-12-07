@@ -65,7 +65,34 @@
         </config-file>
         
         <source-file src="src/android/PermissionUtils.java" target-dir="src/com/buongiorno/newton/cordova/"/>
+        <source-file src="src/android/NewtonApplication.java" target-dir="src/com/buongiorno/newton/cordova/"/>
         <source-file src="src/android/NewtonPlugin.java" target-dir="src/com/buongiorno/newton/cordova/"/>
 
+    </platform>
+
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+        <feature name="PushNotification">
+            <param name="ios-package" value="PushPlugin"/>
+        </feature>
+        </config-file>
+        <config-file target="*-Info.plist" parent="UIBackgroundModes">
+        <array>
+            <string>remote-notification</string>
+        </array>
+        </config-file>
+        <config-file target="*-Info.plist" parent="NEWTON_SECRET">
+            <string>$SECRET</string>
+        </config-file>
+        <config-file target="*-Info.plist" parent="NSAppTransportSecurity">
+            <dict>
+                <key>NSAllowsArbitraryLoads</key>
+                <true/>
+            </dict>
+        </config-file>
+        <source-file src="src/ios/AppDelegate+notification.m"/>
+        <source-file src="src/ios/PushPlugin.m"/>
+        <header-file src="src/ios/AppDelegate+notification.h"/>
+        <header-file src="src/ios/PushPlugin.h"/>
     </platform>
 </plugin>

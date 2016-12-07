@@ -73,7 +73,7 @@ public class NewtonPlugin extends CordovaPlugin {
     }
 
     private enum LoginOptions {
-        customData, externalID, type
+        customData, externalId, type, customId
     }
 
     private enum LoginFlowType {
@@ -135,104 +135,22 @@ public class NewtonPlugin extends CordovaPlugin {
                     // force hybrid true
                     customData.setBool("hybrid", true);
 
-                    String newtonSecret = "";
 
-                    // load newton conf from manifest meta data
-                    try {
-                        ApplicationInfo ai = getApplicationContext().getPackageManager().
-                                getApplicationInfo(
-                                        getApplicationContext().getPackageName(),
-                                        PackageManager.GET_META_DATA);
-                        Bundle bundle = ai.metaData;
-                        newtonSecret = bundle.getString(META_SECRET);
-
-                    } catch (PackageManager.NameNotFoundException e) {
-                        Log.e(LOG_TAG, "Failed to load meta-data, NameNotFound: " + e.getMessage(), e);
-                        callbackContext.error(e.getMessage());
-                        return;
-                    } catch (NullPointerException e) {
-                        Log.e(LOG_TAG, "Failed to load meta-data, NullPointer: " + e.getMessage(), e);
-                        callbackContext.error(e.getMessage());
-                        return;
-                    } catch (Exception e) {
-                        Log.e(LOG_TAG, "Failed to load meta-data, Exception: " + e.getMessage(), e);
-                        callbackContext.error(e.getMessage());
-                        return;
-                    }
 
                     try {
+                        String newtonSecret = ((NewtonApplication) getApplicationContext()).getNewtonSecret();
+
                         newtonEngine = Newton.getSharedInstanceWithConfig(getApplicationContext(), newtonSecret, customData);
 
-                        newtonEngine.getPushManager().setPushNotificationCallback(new IPushCallback() {
-                            @Override
-                            public void onSuccess(PushObject push) {
-
-                                Log.i(LOG_TAG, "Got push notification: " + push.toString());
-
-                                boolean isPushPluginActive = NewtonPlugin.isActive();
-
-                                NewtonPlugin.sendPushToJs(push);
-
-                                // FIXME, verify if it works when not in foreground
-                                if (!isPushPluginActive) {
-                                    Log.d(LOG_TAG, "forceMainActivityReload");
-                                    forceMainActivityReload();
-                                }
-                            }
-
-                            /**
-                             * Forces the main activity to re-launch if it's unloaded.
-                             */
-                            private void forceMainActivityReload() {
-                                Context context = getApplicationContext();
-                                PackageManager pm = context.getPackageManager();
-                                Intent launchIntent = pm.getLaunchIntentForPackage(context.getPackageName());
-                                context.startActivity(launchIntent);
-                            }
-                        });
-
                         newtonEngine.getPushManager().registerDevice();
-
-
-                        getActivity().getApplication().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-                            @Override
-                            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-                            }
-
-                            @Override
-                            public void onActivityStarted(Activity activity) {
-                            }
-
-                            @Override
-                            public void onActivityResumed(Activity activity) {
-                                try {
-                                    Newton.getSharedInstance().setToForeground();
-                                } catch (NewtonNotInitializedException e) {
-                                    Log.e(LOG_TAG, "NewtonNotInitializedException: " + e.getMessage(), e);
-                                }
-                            }
-
-                            @Override
-                            public void onActivityPaused(Activity activity) {
-                            }
-
-                            @Override
-                            public void onActivityStopped(Activity activity) {
-                            }
-
-                            @Override
-                            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-                            }
-
-                            @Override
-                            public void onActivityDestroyed(Activity activity) {
-                            }
-                        });
 
                         // emit initialization finished
                         JSONObject initFinished = new JSONObject();
                         initFinished.put("initialized", true);
-                        pushContext.success(initFinished);
+
+                        PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, initFinished);
+                        pluginResult.setKeepCallback(true);
+                        pushContext.sendPluginResult(pluginResult);
 
                         // if there are any push saved emit them
                         if (!gCachedPushes.isEmpty()) {
@@ -258,9 +176,14 @@ public class NewtonPlugin extends CordovaPlugin {
 
                         Log.e(LOG_TAG, "PushRegistrationException - Newton initialization error:" + e.getMessage(), e);
                         callbackContext.error("PushRegistrationException - Newton initialization error: "+e.getMessage());
+
                     } catch (JSONException e) {
                         Log.e(LOG_TAG, "JSONException - JSON with initialization result error:" + e.getMessage(), e);
                         callbackContext.error("JSONException - JSON with initialization result error: "+e.getMessage());
+
+                    } catch (Exception e) {
+                        Log.e(LOG_TAG, "Exception - initialization error:" + e.getMessage(), e);
+                        callbackContext.error("Exception - initialization error: "+e.getMessage());
                     }
                 }
             });
@@ -437,8 +360,12 @@ public class NewtonPlugin extends CordovaPlugin {
                                     loginBuilder.setCustomData(customDataSO);
                                     break;
 
-                                case externalID:
+                                case externalId:
                                     loginBuilder.setExternalID(eventParams.getString(key));
+                                    break;
+
+                                case customId:
+                                    loginBuilder.setCustomID(eventParams.getString(key));
                                     break;
 
                                 case type:
