@@ -32,7 +32,7 @@
         <framework src="src/android/build-extras.gradle" custom="true" type="gradleReference" />
 
         <frameworkDisabled src="com.facebook.android:facebook-android-sdk:3.23.0" />
-        <framework src="com.google.android.gms:play-services-gcm:8.3.0" />
+        <framework src="com.google.android.gms:play-services-gcm:9.2.0" />
         <framework src="com.squareup.okhttp3:okhttp:3.0.1" />
         <framework src="me.leolin:ShortcutBadger:1.1.4@aar"/>
 

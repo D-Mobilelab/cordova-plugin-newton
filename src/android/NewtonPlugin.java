@@ -566,7 +566,7 @@ public class NewtonPlugin extends CordovaPlugin {
 
                     try {
                         String contentId = data.getString(0);
-                        RankingEvent.RankingScope scope = RankingEvent.RankingScope.valueOf(data.getString(1));
+                        RankingEvent.RankingScope scope = RankingEvent.RankingScope.valueOf(data.getString(1).toUpperCase());
                         Double multipler = data.getDouble(2);
 
                         Newton.getSharedInstance().rankContent(contentId, scope, multipler);
@@ -581,6 +581,9 @@ public class NewtonPlugin extends CordovaPlugin {
                     } catch (NewtonException e) {
                         Log.e(LOG_TAG, "[action: getEnvironmentString] Newton error:" + e.getMessage(), e);
                         callbackContext.error("Newton: "+e.getMessage());
+                    } catch (IllegalArgumentException e) {
+                        Log.e(LOG_TAG, "[action: getEnvironmentString] IllegalArgument error:" + e.getMessage(), e);
+                        callbackContext.error("IllegalArgument: "+e.getMessage());
                     }
                 }
             });

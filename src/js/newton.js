@@ -323,6 +323,7 @@ NewtonLoginBuilder.prototype.startLoginFlow = function(c) {
     NewtonPlugin.startLoginFlowWithParams(
         function() {
             if (that.onFlowCompleteCb && (typeof that.onFlowCompleteCb === 'function')) {
+                that.newtonInstance._updateUserLogged();
                 that.onFlowCompleteCb();
             }
         },
@@ -1009,7 +1010,7 @@ var cordovaCallback = (function(){
     return {
         success: function(funcName, args) {
             var argsStr = "";
-            if (args && (args instanceof Array)) {
+            if (args) {
                 for (var i = 0; i < args.length; i++) {
                     argsStr = argsStr + JSON.stringify(args[i]) + "; ";
                 }
@@ -1025,9 +1026,9 @@ var cordovaCallback = (function(){
                 }
             }
         },
-        fail: function(funcName) {
+        fail: function(funcName, args) {
             var argsStr = "";
-            if (args && (args instanceof Array)) {
+            if (args) {
                 for (var i = 0; i < args.length; i++) {
                     argsStr = argsStr + JSON.stringify(args[i]) + "; ";
                 }
