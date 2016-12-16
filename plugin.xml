@@ -1,61 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        id="com.buongiorno.hybrid.newton"
-        version="0.1.0">
-
+        id="cordova-plugin-newton" version="0.1.0">
     <name>Newton</name>
-
+    <description>Cordova Newton Plugin</description>
+    <license>Apache 2.0</license>
+    <keywords>cordova,newton</keywords>
+    
     <description>
-        Newton Plugin for Android
-    </description>
+		This plugin allow to use Newton SDK with Cordova
+	</description>
 
-    <repo>https://bitbucket.org/ibridi/plugin-cordova-newton/</repo>
-    <author></author>
-    <keywords>deltadna, cordova, phonegap, ionic, plugin, ios, android</keywords>
+    <js-module src="src/js/newton.js" name="Newton">
+        <clobbers target="Newton"/>
+    </js-module>
 
-    <engines>
-        <engine name="cordova" version=">=3.0.0"/>
-    </engines>
-
-    <js-module src="www/newton.js">
-        <clobbers target="window.newton"/>
-    </js-module>    
-
+    <preference name="SECRET"/>
+    <preference name="SENDER_ID"/>
+    
     <platform name="android">
-
-      <source-file src="src/android/newton.xml" target-dir="res/values" />
-     
-        <!-- config.xml -->
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="Newton">
-                <param name="android-package"
-                       value="com.eatsjobs.cordova.newton.NewtonPlugin"/>
+                <param name="android-package" value="com.buongiorno.newton.cordova.NewtonPlugin"/>
             </feature>
         </config-file>
-        <!-- config.xml -->
-
-        <!-- Plugin files -->
-        <source-file src="src/android/Newton.jar"
-                     target-dir="libs/"/>
-        <source-file src="src/android/NewtonPlugin.java"
-                     target-dir="src/com/eatsjobs/cordova/newton"/>
-        <config-file target="AndroidManifest.xml" parent="/manifest">
-            <!-- <uses-sdk android:minSdkVersion="9"/> -->            
-
-            <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-            <uses-permission android:name="android.permission.WAKE_LOCK" />
-            <uses-permission android:name="android.permission.INTERNET" />
+        
+        <config-file target="res/values/strings.xml" parent="/resources">
+            <string name="NEWTON_SECRET">$SECRET</string>
+            <string name="NEWTON_SENDER_ID">$SENDER_ID</string>
         </config-file>
-    </platform>   
+
+        <framework src="src/android/build-extras.gradle" custom="true" type="gradleReference" />
+
+        <frameworkDisabled src="com.facebook.android:facebook-android-sdk:3.23.0" />
+        <framework src="com.google.android.gms:play-services-gcm:9.2.0" />
+        <framework src="com.squareup.okhttp3:okhttp:3.0.1" />
+        <framework src="me.leolin:ShortcutBadger:1.1.4@aar"/>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+            <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+            <uses-permission android:name="android.permission.WAKE_LOCK"/>
+            <uses-permission android:name="android.permission.VIBRATE"/>
+            
+            <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
+            <uses-permission android:name="${applicationId}.permission.C2D_MESSAGE"/>
+            <permission android:name="${applicationId}.permission.C2D_MESSAGE" android:protectionLevel="signature"/>
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <receiver android:name="com.buongiorno.newton.GcmBroadcastReceiver" 
+            android:permission="com.google.android.c2dm.permission.SEND">
+                <intent-filter>
+                    <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                    <category android:name="${applicationId}" />
+                </intent-filter>
+            </receiver>
+            <service android:name="com.buongiorno.newton.GcmIntentService" />
+            <activity android:name="com.buongiorno.newton.PushNotificationActivity" />
+
+            <meta-data android:name="newton_secret" android:value="@string/NEWTON_SECRET" />
+            <meta-data android:name="newton_sender_id" android:value="@string/NEWTON_SENDER_ID" />
+            
+        </config-file>
+        
+        <source-file src="src/android/PermissionUtils.java" target-dir="src/com/buongiorno/newton/cordova/"/>
+        <source-file src="src/android/NewtonApplication.java" target-dir="src/com/buongiorno/newton/cordova/"/>
+        <source-file src="src/android/NewtonPlugin.java" target-dir="src/com/buongiorno/newton/cordova/"/>
+
+    </platform>
 
     <platform name="ios">
-        <!-- for iOS 9 support -->
+        <config-file target="config.xml" parent="/*">
+        <feature name="PushNotification">
+            <param name="ios-package" value="PushPlugin"/>
+        </feature>
+        </config-file>
+        <config-file target="*-Info.plist" parent="UIBackgroundModes">
+        <array>
+            <string>remote-notification</string>
+        </array>
+        </config-file>
+        <config-file target="*-Info.plist" parent="NEWTON_SECRET">
+            <string>$SECRET</string>
+        </config-file>
         <config-file target="*-Info.plist" parent="NSAppTransportSecurity">
             <dict>
                 <key>NSAllowsArbitraryLoads</key>
                 <true/>
             </dict>
         </config-file>
+        <source-file src="src/ios/AppDelegate+notification.m"/>
+        <source-file src="src/ios/PushPlugin.m"/>
+        <header-file src="src/ios/AppDelegate+notification.h"/>
+        <header-file src="src/ios/PushPlugin.h"/>
     </platform>
 </plugin>
