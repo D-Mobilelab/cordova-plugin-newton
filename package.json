@@ -1,0 +1,29 @@
+{
+  "name": "cordova-plugin-newton",
+  "version": "0.1.0",
+  "description": "Cordova Newton Plugin",
+  "cordova": {
+    "id": "cordova-plugin-newton",
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/D-Mobilelab/cordova-plugin-newton.git"
+  },
+  "keywords": [
+    "cordova",
+    "newton",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios"
+  ],
+  "author": "mirco.cipriani@docomodigital.com",
+  "license": "Apache 2.0",
+  "bugs": {
+    "url": "https://github.com/D-Mobilelab/cordova-plugin-newton/issues"
+  },
+  "homepage": "https://github.com/D-Mobilelab/cordova-plugin-newton#readme"
+}
