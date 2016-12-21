@@ -297,7 +297,7 @@ public class NewtonPlugin extends CordovaPlugin {
                          * to call javascript when done
                          *
                          */
-                        LoginBuilder loginBuilder = newtonEngine.getLoginBuilder();
+                        LoginBuilder loginBuilder = Newton.getSharedInstance().getLoginBuilder();
                         LoginFlowType loginFlowType = null;
 
                         loginBuilder.setOnFlowCompleteCallback(new IBasicResponse() {
@@ -495,6 +495,11 @@ public class NewtonPlugin extends CordovaPlugin {
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
+                    if (newtonEngine == null) {
+                        Log.e(LOG_TAG, "[action: getUserMetaInfo] Newton not initialized");
+                        callbackContext.error("Newton not initialized!");
+                        return;
+                    }
                     newtonEngine.getUserMetaInfo(new IMetaInfoCallBack() {
                         @Override
                         public void onSuccess(MetaInfo metaInfo) {
