@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-newton",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Cordova Newton Plugin",
   "cordova": {
     "id": "cordova-plugin-newton",
