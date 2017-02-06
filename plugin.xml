@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-        id="cordova-plugin-newton" version="0.1.6">
+        id="cordova-plugin-newton" version="0.1.7">
     <name>Newton</name>
     <description>Cordova Newton Plugin</description>
     <license>Apache 2.0</license>
