@@ -101,41 +101,6 @@ public class NewtonApplication extends Application {
                 }
             });
 
-            this.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-                @Override
-                public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-                }
-
-                @Override
-                public void onActivityStarted(Activity activity) {
-                }
-
-                @Override
-                public void onActivityResumed(Activity activity) {
-                    try {
-                        Newton.getSharedInstance().setToForeground();
-                    } catch (NewtonNotInitializedException e) {
-                        Log.e(LOG_TAG, "NewtonNotInitializedException: " + e.getMessage(), e);
-                    }
-                }
-
-                @Override
-                public void onActivityPaused(Activity activity) {
-                }
-
-                @Override
-                public void onActivityStopped(Activity activity) {
-                }
-
-                @Override
-                public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-                }
-
-                @Override
-                public void onActivityDestroyed(Activity activity) {
-                }
-            });
-
             Log.i(LOG_TAG, "Newton initialization from Application Modul OK");
 
 
