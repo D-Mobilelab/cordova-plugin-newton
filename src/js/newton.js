@@ -1073,7 +1073,7 @@ var newtonSingleton = (function() {
 /**
  * Newton Plugin.
  */
-module.exports = {
+var publicInterface = {
     
     getSharedInstanceWithConfig: function(secretId, customData) {
         var options = {
@@ -1097,5 +1097,18 @@ module.exports = {
         fromJSONObject: function(jsonObject) {
             return jsonObject;
         }
-    },
+    }
 };
+
+/**
+ * __EventEmitter__
+ * readonly, invisible in for statements
+ */
+Object.defineProperty(publicInterface, '__EventEmitter__', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: EventEmitter
+});
+/** make it non re assignable */
+module.exports = Object.freeze(publicInterface);
