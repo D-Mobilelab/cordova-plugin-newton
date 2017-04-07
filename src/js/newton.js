@@ -1,6 +1,85 @@
 var exec = cordova.require('cordova/exec');
+// FIX: put in another file
+function EventBus() {	
+    this.events = {};
+}
+/**
+ * on function
+ * @param {String} eventType - if not exists it defines a new one
+ * @param {Function} func - the function to call when the event is triggered
+ * @param {Object} [context=null] - the 'this' applied to the function. default null
+ */
+EventBus.prototype.on = function(eventType, func) {
+    var context = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
+    if (!this.events[eventType]) {
+        this.events[eventType] = [];
+    }
+    this.events[eventType].push({ func: func, context: context });
+}
 
+/**
+ * trigger function
+ * @param {String} eventType - the eventType to trigger. if not exists nothing happens
+ */
+EventBus.prototype.trigger = function(eventType) {
+    if (!this.events[eventType] || this.events[eventType].length === 0) {
+        return;
+    }
+    var args = [].slice.call(arguments, 1);
+    this.events[eventType].map(function (obj) {
+        obj.func.apply(obj.context, args);
+    });
+}
+
+/**
+ * emit function alias for trigger
+ * @param {String} eventType - the eventType to trigger. if not exists nothing happens
+ */
+EventBus.prototype.emit = EventBus.prototype.trigger;
+
+/**
+ * off function
+ * @param {String} eventType - the eventType
+ * @param {Function} func - the reference of the function to remove from the list of function
+ */
+EventBus.prototype.off = function(eventType, func) {
+    if (!this.events[eventType]) {
+        return;
+    }
+
+    var newState = this.events[eventType].reduceRight(function (prev, current, index) {
+        if (current.func !== func) {
+            prev.push(current);
+        }
+        return prev;
+    }, []);
+
+    this.events[eventType] = newState;
+}
+
+/**
+ * clear all the functions associated at the specific eventType
+ * if the event not exists nothing happens
+ * @param {String} eventType - the event type to clear
+ * @returns {void}
+ */
+EventBus.prototype.clear = function(eventType) {
+    if (!this.events[eventType]) {
+        return;
+    }
+    this.events[eventType] = [];
+}
+
+/**
+ * clear all the functions of all eventType
+ * @returns {void}
+ */
+EventBus.prototype.clearAll = function() {
+    this.events = {};
+}
+
+var EventEmitter = new EventBus();
 /**
  * Newton public interface, implement the same interface of Newton JS SDK
  * where there are not callbacks on methods
@@ -44,7 +123,7 @@ var Newton = function(options) {
                 function() {
                     that._updateEnvString(
                         function() {
-                            that.emit('initialized', result);
+                            EventEmitter.emit('initialized', result);
                         }
                     );
                 }
@@ -63,14 +142,14 @@ var Newton = function(options) {
 
             executeFunctionByName(result.additionalData.actionCallback, window, result);
         } else if (result) {
-            that.emit('notification', result);
+            EventEmitter.emit('notification', result);
         }
     };
 
     // triggered on error
     var fail = function(msg) {
         var e = (typeof msg === 'string') ? new Error(msg) : msg;
-        that.emit('error', e);
+        EventEmitter.emit('error', e);
     };
 
     // wait at least one process tick to allow event subscriptions
@@ -119,83 +198,12 @@ Newton.prototype.unregister = function(options) {
     var that = this;
     var cleanHandlersAndPassThrough = function() {
         if (!options) {
-            that._handlers = {
-                'initialized': [],
-                'notification': [],
-                'error': []
-            };
+            EventEmitter.clearAll();
         }
         cordovaCallback.success("unregister");
     };
 
     exec(success, cordovaCallback.getSuccessFunc("unregister"), 'Newton', 'unregister', [options]);
-};
-
-
-/**
- * Listen for an event.
- *
- * The following events are supported:
- *
- *   - initialized
- *   - notification
- *   - error
- *
- * @param {String} eventName to subscribe to.
- * @param {Function} callback triggered on the event.
- */
-
-Newton.prototype.on = function(eventName, callback) {
-    if (this._handlers.hasOwnProperty(eventName)) {
-        this._handlers[eventName].push(callback);
-    }
-};
-
-/**
- * Remove event listener.
- *
- * @param {String} eventName to match subscription.
- * @param {Function} handle function associated with event.
- */
-
-Newton.prototype.off = function (eventName, handle) {
-    if (this._handlers.hasOwnProperty(eventName)) {
-        var handleIndex = this._handlers[eventName].indexOf(handle);
-        if (handleIndex >= 0) {
-            this._handlers[eventName].splice(handleIndex, 1);
-        }
-    }
-};
-
-/**
- * Emit an event.
- *
- * This is intended for internal use only.
- *
- * @param {String} eventName is the event to trigger.
- * @param {*} all arguments are passed to the event listeners.
- *
- * @return {Boolean} is true when the event is triggered otherwise false.
- */
-
-Newton.prototype.emit = function() {
-    var args = Array.prototype.slice.call(arguments);
-    var eventName = args.shift();
-
-    if (!this._handlers.hasOwnProperty(eventName)) {
-        return false;
-    }
-
-    for (var i = 0, length = this._handlers[eventName].length; i < length; i++) {
-        var callback = this._handlers[eventName][i];
-        if (typeof callback === 'function') {
-            callback.apply(undefined,args);
-        } else {
-            console.log('event handler: ' + eventName + ' must be a function');
-        }
-    }
-
-    return true;
 };
 
 /**
@@ -504,7 +512,7 @@ Newton.prototype.flowFail = function(flowName, flowParams) {
 Newton.prototype.flowStep = function(flowName, flowParams) {
     if (!flowParams) { flowParams = {}; }
 
-    if (!flowName)  {
+    if (!flowName) {
         console.log('flowStep failure: missing parameter flowName');
         return;
     }
