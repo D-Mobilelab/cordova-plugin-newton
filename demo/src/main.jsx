@@ -1,12 +1,12 @@
 import 'react-hot-loader/patch';
-import {AppContainer} from 'react-hot-loader';
+import { AppContainer } from 'react-hot-loader';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {ready} from 'onsenui';
+import { ready } from 'onsenui';
 
 // Onsen UI Styling and Icons
-require('onsenui/stylus/blue-basic-theme.styl');
-require('onsenui/css/onsenui.css');
+import 'onsenui/css/onsenui.css';
+import 'onsenui/css/onsen-css-components.css';
 
 import App from './App';
 
