@@ -1075,7 +1075,13 @@ var newtonSingleton = (function() {
  * Newton Plugin.
  */
 var publicInterface = {
-    
+    /**
+     * Get the newton instance the first time
+     * @param {String} secretId
+     * @param {NewtonSimpleObject} customData
+     * @param {Function} [pushCallback=function(){}]
+     * @returns {Newton}
+     */
     getSharedInstanceWithConfig: function(secretId, customData, pushCallback) {
         var options = {
             customData: customData,
@@ -1083,7 +1089,10 @@ var publicInterface = {
         };
         return newtonSingleton.get(options);
     },
-
+    /**
+     * Get the newton instance
+     * @returns {Newton}
+     */
     getSharedInstance: function() {
         return newtonSingleton.get();
     },
