@@ -94,6 +94,7 @@ var EventEmitter = new EventBus();
  * @return {Newton} instance that can be used to send events and receive push notification.
  */
 var Newton = function(options) {
+    EventEmitter.on('notification', options.pushCallback);
     this._handlers = {
         'notification': [],
         'error': [],
@@ -1075,9 +1076,10 @@ var newtonSingleton = (function() {
  */
 var publicInterface = {
     
-    getSharedInstanceWithConfig: function(secretId, customData) {
+    getSharedInstanceWithConfig: function(secretId, customData, pushCallback) {
         var options = {
-            customData: customData
+            customData: customData,
+            pushCallback: pushCallback ? pushCallback : function(){}
         };
         return newtonSingleton.get(options);
     },

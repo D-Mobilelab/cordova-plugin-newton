@@ -4,7 +4,7 @@ import {Page, Button, Toolbar, List, ListHeader, ListItem, Input, Range, Tabbar,
 import { notification } from 'onsenui';
 
 import NewtonAdapter from 'newton-adapter';
-//window.NewtonAdapter = NewtonAdapter;
+window.NewtonAdapter = NewtonAdapter;
 
 export default class TabNewtonAdapter extends React.Component {
 
@@ -43,13 +43,13 @@ export default class TabNewtonAdapter extends React.Component {
       notification.alert(notificationMessage);
       this.setState({ receivedNotifications: ++this.state.receivedNotifications });
     };
-    NewtonAdapter.addPushListener(onPush);
     
     NewtonAdapter.init({
       secretId: 'secretId',
       enable: true,
       waitLogin: false,
-      waitDeviceReady: true
+      waitDeviceReady: true,
+      pushCallback: onPush,
     }).then(() => {
        this.setState({
         environment: Newton.getSharedInstance().getEnvironmentString(),
