@@ -19,12 +19,12 @@ class App extends React.Component {
   renderTabs() {
     return [
       {
-        content: <TabCordova title='Cordova Pure' />,
-        tab: <Tab key="1" label='Cordova Pure' icon='md-home' />
-      },
-      {
         content: <TabNewtonAdapter title='Cordova Adapted' useNewtonAdapter="1" />,
         tab: <Tab key="2" label='Cordova Adapted' icon='md-home' />
+      },
+      {
+        content: <TabCordova title='Cordova Pure' />,
+        tab: <Tab key="1" label='Cordova Pure' icon='md-home' />
       }
     ];
   }
