@@ -51,10 +51,12 @@ export default class TabNewtonAdapter extends React.Component {
       waitDeviceReady: true,
       pushCallback: onPush,
     }).then(() => {
+        var newton = Newton.getSharedInstance();      
        this.setState({
-        environment: Newton.getSharedInstance().getEnvironmentString(),
+        environment: newton.getEnvironmentString(),
         initDone: true
-      });      
+      });
+      this.newton = newton;     
     });
     // wait for initialization complete event
     // this.newton.on("initialized", (n) => {
@@ -63,8 +65,7 @@ export default class TabNewtonAdapter extends React.Component {
     //     environment: this.newton.getEnvironmentString(),
     //     initDone: true
     //   })
-    // })
-    this.newton = Newton.getSharedInstance();
+    // })    
   }
 
   sendEvent() {

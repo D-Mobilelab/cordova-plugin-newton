@@ -32,24 +32,22 @@ export default class TabCordova extends React.Component {
   }
 
   sendInit() {
-    this.newton = Newton.getSharedInstanceWithConfig("secretId", {myCustomData: "appdemocordova"})
+    const onPush = (n) => {
+      let notificationMessage = JSON.stringify(n);
+      this.addLogRow("Notification: "+notificationMessage);
+      notification.alert(notificationMessage);
+      this.setState({receivedNotifications: ++this.state.receivedNotifications});
+    }
 
-    // notification callback
-    this.newton.on("notification", (n)=>{
-      let notificationMessage = JSON.stringify(n)
-      this.addLogRow("Notification: "+notificationMessage)
-      notification.alert(notificationMessage)
-      this.setState({receivedNotifications: ++this.state.receivedNotifications})
-    })
-
-    // wait for initialization complete event
-    this.newton.on("initialized", (n)=>{
-
+    const onInit = (n) => {
       this.setState({
         environment: this.newton.getEnvironmentString(),
         initDone: true
-      })
-    })
+      });
+    };
+    this.newton = Newton.getSharedInstanceWithConfig("secretId", {myCustomData: "appdemocordova"}, onPush);
+    // wait for initialization complete event
+    Newton.__EventEmitter__.on("initialized", onInit);
   }
 
   sendEvent() {
