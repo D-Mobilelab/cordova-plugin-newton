@@ -156,7 +156,7 @@ var Newton = function(options) {
     // wait at least one process tick to allow event subscriptions
     setTimeout(function() {
         exec(success, fail, 'Newton', 'init', [options]);
-    }, 10);
+    }, 1);
 };
 
 Newton.prototype._updateUserLogged = function(cbOnSuccess) {
