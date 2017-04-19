@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import {Page, Button, Toolbar, List, ListHeader, ListItem, Input, Range, Tabbar, Tab} from 'react-onsenui';
 import { notification } from 'onsenui';
 
+let NewtonInstance;
 export default class TabCordova extends React.Component {
 
   constructor(props) {
@@ -18,47 +19,41 @@ export default class TabCordova extends React.Component {
       flowName: "",
       timedEventName: ""
     };
+
+    NewtonInstance = Newton.getSharedInstanceWithConfig("secretId", {myCustomData: "appdemocordova"}, this.onPush.bind(this));
   }
 
   alertPopup() {
     notification.alert('This is an Onsen UI alert notification test.');
   }
 
+  onPush(pushData) {
+      console.log("onPush!", pushData);    
+      let notificationMessage = JSON.stringify(n);
+      this.addLogRow("Notification: "+notificationMessage);
+      notification.alert(notificationMessage);
+      this.setState({receivedNotifications: ++this.state.receivedNotifications});    
+  }
+
   addLogRow(logRow) {
     let newLogLines = this.state.logLines.slice();
     let nextLogIndex = this.state.nextLogIndex;
-    newLogLines.push({id: nextLogIndex, value: logRow});   
+    newLogLines.push({ id: nextLogIndex, value: logRow });   
     this.setState({logLines:newLogLines, nextLogIndex: ++nextLogIndex})
   }
 
   sendInit() {
-    const onPush = (n) => {
-      let notificationMessage = JSON.stringify(n);
-      this.addLogRow("Notification: "+notificationMessage);
-      notification.alert(notificationMessage);
-      this.setState({receivedNotifications: ++this.state.receivedNotifications});
-    }
-
-    const onInit = (n) => {
-      this.setState({
-        environment: this.newton.getEnvironmentString(),
-        initDone: true
-      });
-    };
-    this.newton = Newton.getSharedInstanceWithConfig("secretId", {myCustomData: "appdemocordova"}, onPush);
+    this.newton = Newton.getSharedInstance();
     // wait for initialization complete event
-    Newton.__EventEmitter__.on("initialized", onInit);
   }
 
   sendEvent() {
-    this.newton.sendEvent(
-      this.state.eventName
-    )
+    this.newton.sendEvent(this.state.eventName);
   }
 
   sendLogin() {
     this.newton.getLoginBuilder()
-      .setCustomData( Newton.SimpleObject.fromJSONObject({
+      .setCustomData(Newton.SimpleObject.fromJSONObject({
         customDataForTest: 1, foo: "bar"
       }))
       .setOnFlowCompleteCallback((res) => this.addLogRow("Login OK"))

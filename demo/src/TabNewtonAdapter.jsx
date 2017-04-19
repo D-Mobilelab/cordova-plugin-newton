@@ -21,6 +21,20 @@ export default class TabNewtonAdapter extends React.Component {
       flowName: "",
       timedEventName: ""
     };
+
+    NewtonAdapter.init({
+      secretId: 'secretId',
+      enable: true,
+      waitLogin: false,
+      pushCallback: this.onPush.bind(this),
+    }).then(() => {
+       var newton = Newton.getSharedInstance();      
+       this.setState({
+        environment: newton.getEnvironmentString(),
+        initDone: true
+      });
+      this.newton = newton;     
+    });
   }
 
   alertPopup() {
@@ -34,38 +48,16 @@ export default class TabNewtonAdapter extends React.Component {
     this.setState({logLines:newLogLines, nextLogIndex: ++nextLogIndex})
   }
 
-  sendInit() {
-    // this.newton = Newton.getSharedInstanceWithConfig("secretId", {myCustomData: "appdemocordova"})
-    // notification callback
-    const onPush = (n) => {
+  onPush(n){
+      console.log(n);
       let notificationMessage = JSON.stringify(n);
       this.addLogRow(`Notification:${notificationMessage}`);
       notification.alert(notificationMessage);
       this.setState({ receivedNotifications: ++this.state.receivedNotifications });
-    };
-    
-    NewtonAdapter.init({
-      secretId: 'secretId',
-      enable: true,
-      waitLogin: false,
-      waitDeviceReady: true,
-      pushCallback: onPush,
-    }).then(() => {
-        var newton = Newton.getSharedInstance();      
-       this.setState({
-        environment: newton.getEnvironmentString(),
-        initDone: true
-      });
-      this.newton = newton;     
-    });
-    // wait for initialization complete event
-    // this.newton.on("initialized", (n) => {
+  }
 
-    //   this.setState({
-    //     environment: this.newton.getEnvironmentString(),
-    //     initDone: true
-    //   })
-    // })    
+  sendInit() {
+
   }
 
   sendEvent() {

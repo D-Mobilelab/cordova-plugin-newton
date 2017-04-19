@@ -10,16 +10,15 @@ import 'onsenui/css/onsen-css-components.css';
 
 import App from './App';
 
-const rootElement = document.getElementById('app');
-
-ready(() => 
+document.addEventListener('deviceready', function ondeviceready(e){
+  console.log("Device ready", e);
   ReactDOM.render(
-    <AppContainer>
-      <App />
-    </AppContainer>,
-    rootElement
-  )
-);
+      <AppContainer>
+        <App />
+      </AppContainer>,
+      document.getElementById('app')
+    );
+});
 
 if (module.hot) {
   module.hot.accept('./App', () => {
