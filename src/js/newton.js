@@ -336,7 +336,13 @@ NewtonLoginBuilder.prototype.startLoginFlow = function(c) {
                 that.onFlowCompleteCb();
             }
         },
-        cordovaCallback.getFailFunc("startLoginFlowWithParams"),
+        function(error) {
+            error = error || 'unknow error';
+            if (that.onFlowCompleteCb && (typeof that.onFlowCompleteCb === 'function')) {
+                that.newtonInstance._updateUserLogged();
+                that.onFlowCompleteCb(error);
+            }
+        },
         loginParameters
     );
 };
