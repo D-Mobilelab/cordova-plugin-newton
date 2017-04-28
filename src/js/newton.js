@@ -336,7 +336,18 @@ NewtonLoginBuilder.prototype.startLoginFlow = function(c) {
                 that.onFlowCompleteCb();
             }
         },
-        cordovaCallback.getFailFunc("startLoginFlowWithParams"),
+        function(error) {
+            var _error = error;
+            if (typeof _error === "string" &&_error.indexOf("UserAlreadyLoggedException") > -1) {
+                console.warn("Newton:UserAlreadyLoggedExpection", error);
+                _error = null;
+            }
+            
+            if (that.onFlowCompleteCb && (typeof that.onFlowCompleteCb === 'function')) {
+                that.newtonInstance._updateUserLogged();
+                that.onFlowCompleteCb(_error);
+            }
+        },
         loginParameters
     );
 };
