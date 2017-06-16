@@ -1,0 +1,10 @@
+framework module Newton {
+  umbrella header "Newton.h"
+
+  export *
+  module * { export * }
+}
+
+module Newton.Swift {
+    header "Newton-Swift.h"
+}

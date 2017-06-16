@@ -10,6 +10,10 @@
 		This plugin allow to use Newton SDK with Cordova
 	</description>
 
+    <engines>
+        <engine name="cordova-ios" version=">=4.0.0" />
+    </engines>
+
     <js-module src="src/js/newton.js" name="Newton">
         <clobbers target="Newton"/>
     </js-module>
@@ -71,8 +75,8 @@
 
     <platform name="ios">
         <config-file target="config.xml" parent="/*">
-        <feature name="PushNotification">
-            <param name="ios-package" value="PushPlugin"/>
+        <feature name="Newton">
+            <param name="ios-package" value="NewtonPlugin"/>
         </feature>
         </config-file>
         <config-file target="*-Info.plist" parent="UIBackgroundModes">
@@ -89,9 +93,12 @@
                 <true/>
             </dict>
         </config-file>
-        <source-file src="src/ios/AppDelegate+notification.m"/>
-        <source-file src="src/ios/PushPlugin.m"/>
-        <header-file src="src/ios/AppDelegate+notification.h"/>
-        <header-file src="src/ios/PushPlugin.h"/>
+        <header-file src="src/ios/NewtonPlugin-Bridging-Header.h" />
+        <source-file src="src/ios/NewtonPlugin.swift"/>
+        
+        <framework src="src/ios/Newton.framework" embed="true" custom="true" />
+        <framework src="src/ios/CommonCrypto.framework" embed="true" custom="true" />
+
+        <dependency id="cordova-plugin-app-event" />
     </platform>
 </plugin>

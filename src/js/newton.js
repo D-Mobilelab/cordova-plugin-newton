@@ -75,7 +75,7 @@ var Newton = function(options) {
 
     // wait at least one process tick to allow event subscriptions
     setTimeout(function() {
-        exec(success, fail, 'Newton', 'init', [options]);
+        exec(success, fail, 'Newton', 'initialize', [options]);
     }, 10);
 };
 

@@ -100,7 +100,7 @@ public class NewtonPlugin extends CordovaPlugin {
         Log.v(LOG_TAG, "execute: data=" + data.toString());
         gWebView = this.webView;
         
-        if ("init".equals(action)) {
+        if ("initialize".equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
