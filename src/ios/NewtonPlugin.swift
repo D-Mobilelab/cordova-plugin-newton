@@ -12,7 +12,7 @@ import Newton
 let TAG = "NewtonPlugin"
 
 func DDIlog(_ message: String) {
-    NSLog("%@ - %@", TAG, message)
+    NSLog("[%@] - %@", TAG, message)
 }
 
 
@@ -20,77 +20,77 @@ func DDIlog(_ message: String) {
     
     var callbackId:String?
     
+    // app status passed by appdelegate implemented in objc
+    public var notificationMessage:[String: Any] = [:]
+    public var isInline:Bool=false
+    public var coldstart:Bool=false
+    
+    public var localNotificationMessage:UILocalNotification
+    
     enum PluginError: Error {
         case invalidParameter(parameterName: String)
+        case internalError(reason: String)
         
         var description: String {
             switch self {
             case .invalidParameter(let parameterName): return "invalid parameter: "+parameterName
+            case .internalError(let reason): return "internal error: "+reason
+            
             }
         }
     }
     
-    override init() {
-        DDIlog("NewtonPlugin init")
-        super.init()
-    }
-    
-    func getNewtonSecret() -> String {
-        if let url = Bundle.main.url(forResource:"Config", withExtension: "plist") {
-            do {
-                let data = try Data(contentsOf:url)
-                let configDict = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as! [String:Any]
-                
-                // FIXME: check what happen if key is not available in pList
-                return (configDict["NEWTON_SECRET"] as? String)!
-                
-            } catch {
-                DDIlog("Error while getting Newton secret from pList NEWTON_SECRET")
-            }
+    func getNewtonSecret() throws -> String {
+        var keyForSecret = "NEWTON_SECRET"
+        if DEBUG_BUILD.boolValue {
+            keyForSecret = "NEWTON_SECRET_DEV"
+        }
+        if let secret = Bundle.main.infoDictionary?[keyForSecret] as? String {
+            DDIlog("using secret: \(secret) got from \(keyForSecret)")
+            return secret;
         }
         
-        return ""
+        throw PluginError.internalError(reason: "Error while getting Newton secret from pList NEWTON_SECRET")
     }
     
-    override func pluginInitialize () {
-        
-        let nc = NotificationCenter.default
-        nc.addObserver(forName:Notification.Name.CDVLocal,
-                       object:nil, queue:nil,
-                       using:didReceiveLocalNotification)
-        
+    override func pluginInitialize() {
+        DDIlog("pluginInitialize()")
+        notificationMessage = [String: Any]()
+        localNotificationMessage = UILocalNotification()
+    }
+    
+    override public func onAppTerminate() {
+        //
     }
     
     func initialize(_ command: CDVInvokedUrlCommand) {
-        DDIlog("Plugin initialization")
+        DDIlog("action: initialize")
         
-        let newtonSecret:String = self.getNewtonSecret();
-        
-        // create a dictionary for Newton Custom Data
-        var customDataDict: Dictionary<String, Any> = Dictionary()
-        
-        // if sent a valid custom data from JS use that
-        if command.argument(at: 0) != nil {
-            if let customDataArg = command.argument(at: 0) as? NSDictionary {
-                if let customDataDictArg = customDataArg as? Dictionary<String, Any> {
-                    customDataDict = customDataDictArg
-                }
-            }
-        }
         
         var initOk: Bool = true
         var initResult = [String:Any]()
         var initError:String = "no error"
         
-        let customData = NWSimpleObject(fromDictionary: customDataDict)
-        do {
-            try customData?.setBool(key: "hybrid", value: true)
-        }
-        catch {
-            DDIlog("Error setting initial SimpleObject with CustomData")
-        }
         
         do {
+            let newtonSecret:String = try self.getNewtonSecret();
+            
+            // create a dictionary for Newton Custom Data
+            var customDataDict: Dictionary<String, Any> = Dictionary()
+            
+            // if sent a valid custom data from JS use that
+            if command.argument(at: 0) != nil {
+                if let customDataArg = command.argument(at: 0) as? NSDictionary {
+                    if let customDataDictArg = customDataArg as? Dictionary<String, Any> {
+                        customDataDict = customDataDictArg
+                    }
+                }
+            }
+            
+            let customData = NWSimpleObject(fromDictionary: customDataDict)
+            try customData?.setBool(key: "hybrid", value: true)
+            
+            
             let newtonInstance = try Newton.getSharedInstanceWithConfig(conf: newtonSecret, customData: customData)
             try newtonInstance.getPushManager().registerDevice();
             
@@ -101,6 +101,15 @@ func DDIlog(_ message: String) {
                 DDIlog("A Push Notification has been handled. \(push.description)")
                 self.sendPushToJs(push)
             })
+            
+            // if there are any notification saved process them
+            if isNotificationMessageAvailable() {
+                let launchOptions = getNotificationMessage()
+                
+                try newtonInstance.getPushManager().setNotifyLaunchOptions(launchOptions:launchOptions)
+                
+                clearNotificationMessage()
+            }
             
             initResult["initialized"] = true
         }
@@ -126,62 +135,6 @@ func DDIlog(_ message: String) {
         result.setKeepCallbackAs(true)
         
         commandDelegate!.send(result, callbackId: command.callbackId)
-    }
-    
-    func xxxxxx(_ command: CDVInvokedUrlCommand) {
-        
-        var errorDesc:String = "Unknown error"
-        
-        do {
-            let logged = try Newton.getSharedInstance().isUserLogged()
-            
-            var result = [String:Any]()
-            result["isUserLogged"] = logged
-            
-            commandDelegate!.send(
-                CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result),
-                callbackId: command.callbackId
-            )
-        }
-        catch let err as PluginError {
-            errorDesc = err.description
-        }
-        catch {
-            errorDesc = error as! String
-        }
-        
-        commandDelegate!.send(
-            CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: errorDesc),
-            callbackId: command.callbackId
-        )
-    }
-    
-    func xxxxxxx(_ command: CDVInvokedUrlCommand) {
-        
-        var errorDesc:String = "Unknown error"
-        
-        do {
-            let logged = try Newton.getSharedInstance().isUserLogged()
-            
-            var result = [String:Any]()
-            result["isUserLogged"] = logged
-            
-            commandDelegate!.send(
-                CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result),
-                callbackId: command.callbackId
-            )
-        }
-        catch let err as PluginError {
-            errorDesc = err.description
-        }
-        catch {
-            errorDesc = error as! String
-        }
-        
-        commandDelegate!.send(
-            CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: errorDesc),
-            callbackId: command.callbackId
-        )
     }
     
     func sendEvent(_ command: CDVInvokedUrlCommand) {
@@ -815,7 +768,14 @@ func DDIlog(_ message: String) {
         )
     }
     
-    
+    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool  {
+        DDIlog("didFinishLaunchingWithOptions")
+        //try Newton.getSharedInstance().getPushManager()
+        
+        return true
+    }
+
+    /*
     func didReceiveLocalNotification (notification: Notification) {
         DDIlog("didReceiveLocalNotification")
         if UIApplication.shared.applicationState != .active {
@@ -829,6 +789,182 @@ func DDIlog(_ message: String) {
                 
                 //evaluateJs(js)
             }
+        }
+    }
+    */
+    
+    public func saveNotificationMessage(_ message:[String: Any]) {
+        notificationMessage = message
+    }
+    
+    private func getNotificationMessage() -> [UIApplicationLaunchOptionsKey:Any] {
+        
+        var launchOptions = [UIApplicationLaunchOptionsKey:Any]()
+        for (kind, value) in notificationMessage {
+            launchOptions[UIApplicationLaunchOptionsKey(kind)] = value
+        }
+        
+        return launchOptions
+    }
+    
+    private func isNotificationMessageAvailable() -> Bool {
+        return notificationMessage.count > 0
+    }
+    
+    private func clearNotificationMessage() {
+        coldstart = false
+        notificationMessage.removeAll()
+    }
+    
+    /*
+     * Send push data to Newton if the plugin has been initialized
+     * otherwise the push data will be sent on plugin initialization
+    */
+    func onNotifyLaunchOptions() {
+        
+        // if plugin has been initialized and there is a push saved then proceed
+        if (self.callbackId != nil && isNotificationMessageAvailable()) {
+            
+            var errorDesc:String = "Unknown error"
+            
+            do {
+                let newtonInstance = try Newton.getSharedInstance()
+                
+                let launchOptions = getNotificationMessage()
+                
+                try newtonInstance.getPushManager().setNotifyLaunchOptions(launchOptions:launchOptions)
+                
+                clearNotificationMessage()
+                
+                DDIlog("Push data sent to Newton")
+                
+                return
+            }
+            catch let err as PluginError {
+                errorDesc = err.description
+            }
+            catch {
+                errorDesc = error as! String
+            }
+            
+            DDIlog("onNotifyLaunchOptions error: "+errorDesc)
+        }
+    }
+    
+    func onRegisterForRemoteNotificationsOk(_ token:Data) {
+        // if plugin has been initialized then proceed
+        if (self.callbackId != nil) {
+            
+            var errorDesc:String = "Unknown error"
+            
+            do {
+                let newtonInstance = try Newton.getSharedInstance()
+                
+                try newtonInstance.getPushManager().setDeviceToken(token: token)
+                
+                DDIlog("Token sent to Newton")
+
+                return
+            }
+            catch let err as PluginError {
+                errorDesc = err.description
+            }
+            catch {
+                errorDesc = error as! String
+            }
+            
+            DDIlog("onRegisterForRemoteNotificationsOk error: "+errorDesc)
+        }
+    }
+    
+    
+    func onRegisterForRemoteNotificationsKo(_ error:Error) {
+        // if plugin has been initialized then proceed
+        if (self.callbackId != nil) {
+            
+            var errorDesc:String = "Unknown error"
+            
+            do {
+                let newtonInstance = try Newton.getSharedInstance()
+                
+                try newtonInstance.getPushManager().setRegistrationError(error: error)
+                
+                DDIlog("Registration error sent to Newton")
+                
+                return
+            }
+            catch let err as PluginError {
+                errorDesc = err.description
+            }
+            catch {
+                errorDesc = error as! String
+            }
+            
+            DDIlog("onRegisterForRemoteNotificationsKo error sending error to newton: "+errorDesc)
+        }
+    }
+    
+    /*
+     * Send push data to Newton if the plugin has been initialized
+     * otherwise the push data will be sent on plugin initialization
+     */
+    func onReceiveRemoteNotification() {
+        
+        // if plugin has been initialized and there is a push saved then proceed
+        if (self.callbackId != nil && isNotificationMessageAvailable()) {
+            
+            var errorDesc:String = "Unknown error"
+            
+            do {
+                let newtonInstance = try Newton.getSharedInstance()
+                
+                let userInfo = getNotificationMessage()
+                
+                try newtonInstance.getPushManager().processRemoteNotification(userInfo:userInfo)
+                
+                clearNotificationMessage()
+                
+                DDIlog("Push data sent to Newton")
+                
+                return
+            }
+            catch let err as PluginError {
+                errorDesc = err.description
+            }
+            catch {
+                errorDesc = error as! String
+            }
+            
+            DDIlog("onReceiveRemoteNotification error: "+errorDesc)
+        }
+    }
+    
+    func onReceiveLocalNotification() {
+        
+        // if plugin has been initialized and there is a push saved then proceed
+        if (self.callbackId != nil) {
+            
+            var errorDesc:String = "Unknown error"
+            
+            do {
+                let newtonInstance = try Newton.getSharedInstance()
+                
+                // FIXME: check type validity
+                // public func processLocalNotification(notification: UILocalNotification)
+                try newtonInstance.getPushManager().processLocalNotification(notification:localNotificationMessage)
+                
+                DDIlog("Push data sent to Newton")
+                
+                return
+            }
+            catch let err as PluginError {
+                errorDesc = err.description
+            }
+            catch {
+                errorDesc = error as! String
+            }
+            
+            DDIlog("onReceiveRemoteNotification error: "+errorDesc)
         }
     }
     
