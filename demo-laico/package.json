@@ -1,0 +1,41 @@
+{
+    "name": "demo-laico",
+    "version": "0.1.0",
+    "private": true,
+    "dependencies": {
+        "cordova-ios": "~4",
+        "cordova-plugin-newton": "file:///Users/mirco.cipriani/Development/bitbucket-ibridi/cordova-plugin-newton",
+        "cordova-plugin-settings-hook": "~0",
+        "onsenui": "^2.4.0",
+        "react": "^15.6.1",
+        "react-dom": "^15.6.1",
+        "react-onsenui": "^1.4.0"
+    },
+    "devDependencies": {
+        "react-scripts": "1.0.7"
+    },
+    "scripts": {
+        "start": "react-scripts start",
+        "build": "react-scripts build; npm run cordova:build",
+        "test": "react-scripts test --env=jsdom",
+        "eject": "react-scripts eject",
+        "cordova:clean": "read -p \"I'm going to delete platforms and plugins folder. Are you sure ?`echo $'\n> '`\" -n 1 -r && [[ $REPLY =~ ^[Yy]$ ]] && \\rm -rf platforms/ plugins/ && cordova prepare",
+        "cordova:copy-build": "cp -r build/* www/",
+        "cordova:prepare": "cordova prepare",
+        "cordova:build": "npm run cordova:copy-build && npm run cordova:prepare"
+    },
+    "cordova": {
+        "platforms": [
+            "ios"
+        ],
+        "plugins": {
+            "cordova-plugin-newton": {
+                "SECRET": "&lt;sec_ret&gt;",
+                "SENDER_ID": "48133420841",
+                "SECRET_DEV": "&lt;sec_ret&gt;"
+            },
+            "cordova-plugin-settings-hook": {}
+        }
+    },
+    "homepage": "."
+}
