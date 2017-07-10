@@ -105,11 +105,10 @@
     <platform name="chrome">
         <icon height="128" src="/platforms/chrome/icon.png" width="128" />
     </platform>
-    <plugin name="cordova-plugin-newton" spec="../">
+    <engine name="ios" spec="~4" />
+    <plugin name="cordova-plugin-newton" spec="file:///Users/mirco.cipriani/Development/bitbucket-ibridi/cordova-plugin-newton">
         <variable name="SECRET" value="&amp;lt;sec_ret&amp;gt;" />
         <variable name="SENDER_ID" value="48133420841" />
     </plugin>
-    <engine name="android" spec="~5" />
-    <engine name="ios" spec="~4" />
     <plugin name="cordova-plugin-settings-hook" spec="~0" />
 </widget>
