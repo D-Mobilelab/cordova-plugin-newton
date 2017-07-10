@@ -8,6 +8,7 @@
 
 import Foundation
 import Newton
+import UIKit
 
 let TAG = "NewtonPlugin"
 
@@ -22,10 +23,10 @@ func DDIlog(_ message: String) {
     
     // app status passed by appdelegate implemented in objc
     public var notificationMessage:[String: Any] = [:]
-    public var isInline:Bool=false
-    public var coldstart:Bool=false
+    public var isInline:Bool = false
+    public var coldstart:Bool = false
     
-    public var localNotificationMessage:UILocalNotification
+    //public var localNotificationMessage:UILocalNotification
     
     enum PluginError: Error {
         case invalidParameter(parameterName: String)
@@ -38,6 +39,19 @@ func DDIlog(_ message: String) {
             
             }
         }
+    }
+    
+    enum LoginOptions: String {
+        case customData
+        case externalId
+        case type
+        case customId
+    }
+    
+    enum LoginFlowType: String {
+        case custom
+        case external
+        case _unknown
     }
     
     func getNewtonSecret() throws -> String {
@@ -56,7 +70,7 @@ func DDIlog(_ message: String) {
     override func pluginInitialize() {
         DDIlog("pluginInitialize()")
         notificationMessage = [String: Any]()
-        localNotificationMessage = UILocalNotification()
+        //localNotificationMessage = UILocalNotification()
     }
     
     override public func onAppTerminate() {
@@ -137,6 +151,63 @@ func DDIlog(_ message: String) {
         commandDelegate!.send(result, callbackId: command.callbackId)
     }
     
+    func setApplicationIconBadgeNumber(_ command: CDVInvokedUrlCommand) {
+        
+        var errorDesc:String = "Unknown error"
+        
+        do {
+            
+            // create a dictionary for command options
+            var optionsDict: Dictionary<String, Any> = Dictionary()
+            
+            // if sent a valid custom data from JS use that
+            if command.argument(at: 0) != nil {
+                if let optionsArg = command.argument(at: 0) as? NSDictionary {
+                    if let optionsDictArg = optionsArg as? Dictionary<String, Any> {
+                        optionsDict = optionsDictArg
+                    }
+                }
+            }
+            if optionsDict["badge"] != nil {
+                throw PluginError.invalidParameter(parameterName: "badge")
+            }
+            
+            guard Int(optionsDict["badge"] as! String) != nil else {
+                throw PluginError.invalidParameter(parameterName: "value for badge")
+            }
+            
+            let app = UIApplication.shared
+            app.applicationIconBadgeNumber = optionsDict["badge"] as! Int
+            
+            commandDelegate!.send(
+                CDVPluginResult(status: CDVCommandStatus_OK),
+                callbackId: command.callbackId
+            )
+        }
+        catch let err as PluginError {
+            errorDesc = err.description
+        }
+        catch {
+            errorDesc = String(describing: error)
+        }
+        
+        commandDelegate!.send(
+            CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: errorDesc),
+            callbackId: command.callbackId
+        )
+    }
+    
+    func clearAllNotifications(_ command: CDVInvokedUrlCommand) {
+        
+        let app = UIApplication.shared
+        app.applicationIconBadgeNumber = 0
+        commandDelegate!.send(
+            CDVPluginResult(status: CDVCommandStatus_OK),
+            callbackId: command.callbackId
+        )
+    }
+
+    
     func sendEvent(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
@@ -170,7 +241,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -184,8 +255,23 @@ func DDIlog(_ message: String) {
         // FIXME: TO COMPLETE! see Android implementation
         
         var errorDesc:String = "Unknown error"
+        let loginCallbackId = command.callbackId
+        var loginFlowType = LoginFlowType._unknown
         
         do {
+            
+            var eventParams:[String: Any] = [String: Any]()
+            
+            let eventParamsArg = command.argument(at: 0)
+            
+            guard eventParamsArg != nil else {
+                throw PluginError.invalidParameter(parameterName: "options")
+            }
+            
+            eventParams = eventParamsArg as! [String: Any]
+            
+            
+
             
             /**
              * 1#
@@ -195,20 +281,97 @@ func DDIlog(_ message: String) {
              *
              */
             let loginBuilder = try Newton.getSharedInstance().getLoginBuilder()
-            loginBuilder.setOnFlowCompleteCallback(callback: { (err:NWError?) in
+            
+            _ = loginBuilder.setOnFlowCompleteCallback(callback: { error in
                 
-                let result:CDVPluginResult = CDVPluginResult(status: CDVCommandStatus_NO_RESULT)
-                // save the callback for using it later
-                result.setKeepCallbackAs(true)
-                
-                
+                DispatchQueue.main.async { () -> Void in
+                    
+                    // on Android I'm saving the callback with keepCallback, but I think that the callback is not needed anymore after FlowCompleteCallback
+                    
+                    if let error = error {
+                        self.commandDelegate!.send(
+                            CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: String(describing: error)),
+                            callbackId: loginCallbackId
+                        )
+                        
+                    } else {
+                        self.commandDelegate!.send(
+                            CDVPluginResult(status: CDVCommandStatus_OK),
+                            callbackId: loginCallbackId
+                        )
+                    }
+                }
             })
+            
             /**
              * 2#
              *
              * iterate over parameters to initialize the login builder
              *
              */
+            for (optionName, optionValue) in eventParams {
+                
+                let loginOptionName = LoginOptions(rawValue: optionName)
+                
+                guard (loginOptionName != nil) else {
+                    //throw PluginError.invalidParameter(parameterName: optionName)
+                    DDIlog("startLoginFlowWithParams() unknow param name: "+optionName)
+                    continue
+                }
+                
+                
+                
+                
+                switch loginOptionName! {
+                case .customData:
+                    
+                    guard let optionValue = optionValue as? [String: Any] else {
+                        throw PluginError.invalidParameter(parameterName: "value of "+optionName)
+                    }
+                    let customData = NWSimpleObject(fromDictionary: optionValue)
+                    guard let customDataSO = customData else {
+                        throw PluginError.invalidParameter(parameterName: "value of customData")
+                    }
+                    
+                    // ignore the result
+                    _ = loginBuilder.setCustomData(cData: customDataSO)
+                    
+                    
+                case .externalId:
+                    guard let optionValue = optionValue as? String else {
+                        throw PluginError.invalidParameter(parameterName: "value of "+optionName)
+                    }
+                    
+                    // ignore the result
+                    _ = loginBuilder.setExternalID(externalId: optionValue)
+                    
+                    
+                case .type:
+                    guard let optionValue = optionValue as? String else {
+                        throw PluginError.invalidParameter(parameterName: "value of "+optionName)
+                    }
+                    guard LoginFlowType(rawValue: optionValue) != nil else {
+                        throw PluginError.invalidParameter(parameterName: "value of type")
+                    }
+                    
+                    loginFlowType = LoginFlowType(rawValue: optionValue)!
+                    
+                    
+                    
+                case .customId:
+                    
+                    guard let optionValue = optionValue as? String else {
+                        throw PluginError.invalidParameter(parameterName: "value of "+optionName)
+                    }
+                    
+                    // ignore the result
+                    _ = loginBuilder.setCustomID(customId: optionValue)
+                    
+                    
+                } // end switch loginOptionName
+                
+            } // end for (optionName, optionValue) in eventParams
+            
             
             /**
              * 3#
@@ -216,6 +379,16 @@ func DDIlog(_ message: String) {
              * then start the login flow
              *
              */
+            switch loginFlowType {
+            case .external:
+                let flow = try loginBuilder.getExternalLoginFlow()
+                flow.startLoginFlow()
+            case .custom:
+                let flow = try loginBuilder.getCustomLoginFlow()
+                flow.startLoginFlow()
+            case ._unknown:
+                throw PluginError.invalidParameter(parameterName: "missing type parameter")
+            }
             
             let result:CDVPluginResult = CDVPluginResult(status: CDVCommandStatus_NO_RESULT)
             // save the callback for using it later
@@ -227,8 +400,10 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
+        
+        DDIlog("startLoginFlowWithParams() exception: "+errorDesc)
         
         commandDelegate!.send(
             CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: errorDesc),
@@ -255,7 +430,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -283,7 +458,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -308,7 +483,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -345,7 +520,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -373,7 +548,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -402,7 +577,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -464,7 +639,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -507,7 +682,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -549,7 +724,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -591,7 +766,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -633,7 +808,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -675,7 +850,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -717,7 +892,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -759,7 +934,7 @@ func DDIlog(_ message: String) {
             errorDesc = err.description
         }
         catch {
-            errorDesc = error as! String
+            errorDesc = String(describing: error)
         }
         
         commandDelegate!.send(
@@ -768,13 +943,6 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool  {
-        DDIlog("didFinishLaunchingWithOptions")
-        //try Newton.getSharedInstance().getPushManager()
-        
-        return true
-    }
-
     /*
     func didReceiveLocalNotification (notification: Notification) {
         DDIlog("didReceiveLocalNotification")
@@ -844,7 +1012,7 @@ func DDIlog(_ message: String) {
                 errorDesc = err.description
             }
             catch {
-                errorDesc = error as! String
+                errorDesc = String(describing: error)
             }
             
             DDIlog("onNotifyLaunchOptions error: "+errorDesc)
@@ -870,7 +1038,7 @@ func DDIlog(_ message: String) {
                 errorDesc = err.description
             }
             catch {
-                errorDesc = error as! String
+                errorDesc = String(describing: error)
             }
             
             DDIlog("onRegisterForRemoteNotificationsOk error: "+errorDesc)
@@ -897,7 +1065,7 @@ func DDIlog(_ message: String) {
                 errorDesc = err.description
             }
             catch {
-                errorDesc = error as! String
+                errorDesc = String(describing: error)
             }
             
             DDIlog("onRegisterForRemoteNotificationsKo error sending error to newton: "+errorDesc)
@@ -932,13 +1100,14 @@ func DDIlog(_ message: String) {
                 errorDesc = err.description
             }
             catch {
-                errorDesc = error as! String
+                errorDesc = String(describing: error)
             }
             
             DDIlog("onReceiveRemoteNotification error: "+errorDesc)
         }
     }
     
+    /*
     func onReceiveLocalNotification() {
         
         // if plugin has been initialized and there is a push saved then proceed
@@ -961,12 +1130,13 @@ func DDIlog(_ message: String) {
                 errorDesc = err.description
             }
             catch {
-                errorDesc = error as! String
+                errorDesc = String(describing: error)
             }
             
             DDIlog("onReceiveRemoteNotification error: "+errorDesc)
         }
     }
+    */
     
     func convertCustomFieldToJson(_ customFieldSO: NWSimpleObject?) -> [String:Any] {
         

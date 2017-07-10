@@ -86,17 +86,17 @@ static char coldstartKey;
 // to process notifications in cold-start situations
 - (void)createNotificationChecker:(NSNotification *)notification
 {
-    NSLog(@"[NewtonPlugin objc] - on ApplicationDidFinishLaunching hook");
+    NSLog(@"[NewtonPlugin:objc] - on ApplicationDidFinishLaunching hook");
     if (notification)
     {
         NSDictionary *launchOptions = [notification userInfo];
         if (launchOptions) {
-            NSLog(@"[NewtonPlugin objc] - coldstart");
+            NSLog(@"[NewtonPlugin:objc] - coldstart");
             self.launchNotification = [launchOptions objectForKey: @"UIApplicationLaunchOptionsRemoteNotificationKey"];
             self.coldstart = [NSNumber numberWithBool:YES];
             
         } else {
-            NSLog(@"[NewtonPlugin objc] - not coldstart");
+            NSLog(@"[NewtonPlugin:objc] - not coldstart");
             self.coldstart = [NSNumber numberWithBool:NO];
         }
     }
@@ -104,7 +104,7 @@ static char coldstartKey;
 
 - (void)pushPluginOnApplicationDidBecomeActive:(NSNotification *)notification {
     
-    NSLog(@"[NewtonPlugin objc] - on ApplicationDidBecomeActive hook");
+    NSLog(@"[NewtonPlugin:objc] - on ApplicationDidBecomeActive hook");
     
     UIApplication *application = notification.object;
     
@@ -138,19 +138,19 @@ static char coldstartKey;
 }
 
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-    NSLog(@"[NewtonPlugin objc] - on ApplicationDidRegisterForRemoteNotifications hook");
+    NSLog(@"[NewtonPlugin:objc] - on ApplicationDidRegisterForRemoteNotifications hook");
     NewtonPlugin *newtonPlugin = [self getCommandInstance:NewtonPluginName];
     [newtonPlugin onRegisterForRemoteNotificationsOk:deviceToken];
 }
 
 - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
-    NSLog(@"[NewtonPlugin objc] - on ApplicationDidFailToRegisterForRemoteNotifications hook");
+    NSLog(@"[NewtonPlugin:objc] - on ApplicationDidFailToRegisterForRemoteNotifications hook");
     NewtonPlugin *newtonPlugin = [self getCommandInstance:NewtonPluginName];
     [newtonPlugin onRegisterForRemoteNotificationsKo:error];
 }
 
 - (void) application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
-    NSLog(@"[NewtonPlugin objc] - on ApplicationDidReceiveRemoteNotification hook");
+    NSLog(@"[NewtonPlugin:objc] - on ApplicationDidReceiveRemoteNotification hook");
     NewtonPlugin *newtonPlugin = [self getCommandInstance:NewtonPluginName];
     
     newtonPlugin.notificationMessage = userInfo;
@@ -158,15 +158,15 @@ static char coldstartKey;
     [newtonPlugin onReceiveRemoteNotification];
 }
 
-- (void) application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
-    NSLog(@"[NewtonPlugin objc] - on ApplicationDidReceiveLocalNotification hook");
-    NewtonPlugin *newtonPlugin = [self getCommandInstance:NewtonPluginName];
-    
-    // FIXME
-    //newtonPlugin.localNotificationMessage = notification;
-    //newtonPlugin.isInline = NO;
-    //[newtonPlugin onReceiveLocalNotification];
-}
+//- (void) application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
+//    NSLog(@"[NewtonPlugin:objc] - on ApplicationDidReceiveLocalNotification hook");
+//    NewtonPlugin *newtonPlugin = [self getCommandInstance:NewtonPluginName];
+//
+//    // FIXME
+//    //newtonPlugin.localNotificationMessage = notification;
+//    //newtonPlugin.isInline = NO;
+//    //[newtonPlugin onReceiveLocalNotification];
+//}
 
 
 
