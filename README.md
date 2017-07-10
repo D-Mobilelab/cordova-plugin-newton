@@ -1,7 +1,29 @@
 # cordova-plugin-newton
 Newton Platform Cordova Plugin
 
-## Publish new revision
+## Installation
+
+### iOS platform
+
+After installation of the plugin you have to change the Swift to objectiveC import header to the name of your project.
+
+For example:
+
+1. search for the following line in the file _AppDelegate+notification.m_
+  
+    #import "Newton_Cordova_Demo-Swift.h"
+
+
+2. change it to the name of the current project, for example if the project is called GetStyle:
+
+    #import "GetStyle-Swift.h"
+
+
+
+
+## Contribute
+
+### Publish new revision
 
 $ git commit -m "sync ver plugin.xml" plugin.xml 
 
@@ -14,7 +36,7 @@ $ git push
 $ git push --tags
 
 
-## Launch demo project
+### Launch demo project
 
 $ cd demo
 
