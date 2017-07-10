@@ -300,11 +300,12 @@ public class NewtonPlugin extends CordovaPlugin {
                         LoginBuilder loginBuilder = Newton.getSharedInstance().getLoginBuilder();
                         LoginFlowType loginFlowType = null;
 
+                        // mc 19/06/17: keepcallback removed, it shouldn't be needed 
                         loginBuilder.setOnFlowCompleteCallback(new IBasicResponse() {
                             @Override
                             public void onSuccess() {
                                 PluginResult pluginResult = new PluginResult(PluginResult.Status.OK);
-                                pluginResult.setKeepCallback(true);
+                                //pluginResult.setKeepCallback(true);
                                 loginContext.sendPluginResult(pluginResult);
                             }
 
@@ -320,13 +321,13 @@ public class NewtonPlugin extends CordovaPlugin {
                                     Log.e(LOG_TAG, "[action: startLoginFlowWithParams] Flow failure error on reporting:"+e.getMessage());
 
                                     PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR);
-                                    pluginResult.setKeepCallback(true);
+                                    //pluginResult.setKeepCallback(true);
                                     loginContext.sendPluginResult(pluginResult);
                                     return;
                                 }
 
                                 PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, joNewtonError);
-                                pluginResult.setKeepCallback(true);
+                                //pluginResult.setKeepCallback(true);
                                 loginContext.sendPluginResult(pluginResult);
                             }
                         });
