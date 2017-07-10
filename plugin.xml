@@ -19,6 +19,7 @@
     </js-module>
 
     <preference name="SECRET"/>
+    <preference name="SECRET_DEV"/>
     <preference name="SENDER_ID"/>
     
     <platform name="android">
@@ -30,6 +31,7 @@
         
         <config-file target="res/values/strings.xml" parent="/resources">
             <string name="NEWTON_SECRET">$SECRET</string>
+            <string name="NEWTON_SECRET_DEV">$SECRET_DEV</string>
             <string name="NEWTON_SENDER_ID">$SENDER_ID</string>
         </config-file>
 
@@ -77,6 +79,7 @@
         <config-file target="config.xml" parent="/*">
         <feature name="Newton">
             <param name="ios-package" value="NewtonPlugin"/>
+            <param name="onload" value="true" />
         </feature>
         </config-file>
         <config-file target="*-Info.plist" parent="UIBackgroundModes">
@@ -86,6 +89,9 @@
         </config-file>
         <config-file target="*-Info.plist" parent="NEWTON_SECRET">
             <string>$SECRET</string>
+        </config-file>
+        <config-file target="*-Info.plist" parent="NEWTON_SECRET_DEV">
+            <string>$SECRET_DEV</string>
         </config-file>
         <config-file target="*-Info.plist" parent="NSAppTransportSecurity">
             <dict>
@@ -99,6 +105,5 @@
         <framework src="src/ios/Newton.framework" embed="true" custom="true" />
         <framework src="src/ios/CommonCrypto.framework" embed="true" custom="true" />
 
-        <dependency id="cordova-plugin-app-event" />
     </platform>
 </plugin>
