@@ -65,6 +65,7 @@
             <activity android:name="com.buongiorno.newton.PushNotificationActivity" />
 
             <meta-data android:name="newton_secret" android:value="@string/NEWTON_SECRET" />
+            <meta-data android:name="newton_secret_dev" android:value="@string/NEWTON_SECRET_DEV" />
             <meta-data android:name="newton_sender_id" android:value="@string/NEWTON_SENDER_ID" />
             
         </config-file>
