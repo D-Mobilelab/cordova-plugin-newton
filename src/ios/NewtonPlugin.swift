@@ -183,6 +183,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -236,6 +237,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -395,6 +397,7 @@ func DDIlog(_ message: String) {
             result.setKeepCallbackAs(true)
             
             commandDelegate!.send(result, callbackId: command.callbackId )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -425,6 +428,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -453,9 +457,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result),
                 callbackId: command.callbackId
             )
-        }
-        catch let err as PluginError {
-            errorDesc = err.description
+            return
         }
         catch {
             errorDesc = String(describing: error)
@@ -478,6 +480,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -515,6 +518,7 @@ func DDIlog(_ message: String) {
                     )
                 }
             })
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -543,6 +547,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -572,6 +577,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -634,6 +640,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -677,6 +684,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -719,6 +727,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -761,6 +770,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -803,6 +813,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -845,6 +856,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -887,6 +899,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
@@ -929,6 +942,7 @@ func DDIlog(_ message: String) {
                 CDVPluginResult(status: CDVCommandStatus_OK),
                 callbackId: command.callbackId
             )
+            return
         }
         catch let err as PluginError {
             errorDesc = err.description
