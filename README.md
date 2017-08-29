@@ -25,4 +25,10 @@ $ cordova run -device
 
 $ cd demo
 
+$ npm install monaca webpack cordova -g
+
 $ monaca transpile
+
+#### Preview demo in desktop browser
+
+$ monaca preview

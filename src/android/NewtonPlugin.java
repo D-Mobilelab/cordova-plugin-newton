@@ -135,12 +135,11 @@ public class NewtonPlugin extends CordovaPlugin {
                     // force hybrid true
                     customData.setBool("hybrid", true);
 
-
-
                     try {
                         String newtonSecret = ((NewtonApplication) getApplicationContext()).getNewtonSecret();
 
-                        newtonEngine = Newton.getSharedInstanceWithConfig(getApplicationContext(), newtonSecret, customData);
+                        newtonEngine = Newton.getSharedInstance();
+                        newtonEngine.setCustomDataInSessionEvent(customData);
 
                         newtonEngine.getPushManager().registerDevice();
 
