@@ -4,3 +4,5 @@
 
 #import <Cordova/CDV.h>
 #import <Cordova/CDVAvailability.h>
+
+#import "NewtonPlugin.h"
