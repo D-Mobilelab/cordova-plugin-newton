@@ -9,8 +9,8 @@ try {
   var CopyWebpackPlugin = require(path.join(cordovaNodeModules, 'copy-webpack-plugin'));
   var ProgressBarPlugin = require(path.join(cordovaNodeModules, 'progress-bar-webpack-plugin'));
 
-  var autoprefixer = require(path.join(cordovaNodeModules, 'autoprefixer'));
-  var precss = require(path.join(cordovaNodeModules, 'precss'));
+  var cssnext = require(path.join(cordovaNodeModules, 'postcss-cssnext'));
+  var postcssImport = require(path.join(cordovaNodeModules, 'postcss-import'));
 
 } catch (e) {
   throw new Error('Missing Webpack Build Dependencies. ');
@@ -80,16 +80,13 @@ module.exports = {
       test: /\.(png|jpe?g|gif|svg|woff|woff2|ttf|eot|ico)$/,
       loader: 'file?name=assets/[name].[hash].[ext]'
     }, {
-      test: /\.styl$/,
-      loader: 'style!css!postcss!stylus'
+      test: /\.css$/,
+      include: [/\/onsen-css-components.css$/, path.join(__dirname, 'src')],
+      loader: ExtractTextPlugin.extract('style', 'css?importLoaders=1&-raw!postcss')
     }, {
       test: /\.css$/,
-      exclude: path.join(__dirname, 'src'),
+      exclude: [/\/onsen-css-components.css$/, path.join(__dirname, 'src')],
       loader: ExtractTextPlugin.extract('style', 'css?sourceMap')
-    }, {
-      test: /\.css$/,
-      include: path.join(__dirname, 'src'),
-      loader: 'raw'
     }, {
       test: /\.json$/,
       loader: 'json'
@@ -97,7 +94,12 @@ module.exports = {
   },
 
   postcss: function() {
-    return [precss, autoprefixer];
+    return [
+      postcssImport,
+      cssnext({
+        browsers: ['> 1%', 'last 2 versions', 'Firefox ESR', 'Opera 12.1']
+      })
+    ]
   },
 
   plugins: [
@@ -111,11 +113,12 @@ module.exports = {
     }),
     new ExtractTextPlugin('[name].css'),
     new HtmlWebpackPlugin({
-      template: 'src/public/index.ejs',
+      template: 'src/public/index.html.ejs',
       chunksSortMode: 'dependency',
       externalCSS: ['components/loader.css'],
       externalJS: ['components/loader.js'],
       minify: {
+        caseSensitive: true,
         collapseWhitespace: true,
         conservativeCollapse: true,
         removeAttributeQuotes: true,
@@ -127,7 +130,7 @@ module.exports = {
     new webpack.optimize.UglifyJsPlugin(),
     new CopyWebpackPlugin([{
       from: path.join(__dirname, 'src', 'public'),
-      ignore: ['index.ejs']
+      ignore: ['index.html.ejs']
     }]),
     new ProgressBarPlugin()
   ],

@@ -1,28 +1,15 @@
 {
-    "name": "onsenui-v2-react-minimum",
-    "version": "2.1.1+20160920.1",
-    "description": "",
-    "dependencies": {
-        "cordova-ios": "~4",
-        "cordova-plugin-app-event": "^1.2.0",
-        "cordova-plugin-newton": "file:///Users/mirco.cipriani/Development/bitbucket-ibridi/cordova-plugin-newton",
-        "cordova-plugin-settings-hook": "~0",
-        "newton-adapter": "^1.6.0",
-        "onsenui": "^2.0.0-rc.5",
-        "react": "^15.0.2",
-        "react-dom": "^15.0.2",
-        "react-onsenui": "*"
-    },
-    "cordova": {
-        "platforms": [
-            "ios"
-        ],
-        "plugins": {
-            "cordova-plugin-newton": {
-                "SECRET": "&lt;sec_ret&gt;",
-                "SENDER_ID": "48133420841"
-            },
-            "cordova-plugin-settings-hook": {}
-        }
-    }
+  "name": "onsenui-v2-react-tabbar",
+  "version": "2.2.7+20170324.1",
+  "description": "",
+  "scripts": {
+    "android":"monaca transpile && cordova run android"
+  },
+  "dependencies": {
+    "newton-adapter": "^2.1.0",
+    "onsenui": "2.2.x",
+    "react": "15.4.2",
+    "react-dom": "15.4.2",
+    "react-onsenui": "1.2.x"
+  }
 }
