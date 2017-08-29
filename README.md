@@ -18,6 +18,14 @@ For example:
 
     #import "GetStyle-Swift.h"
 
+### Android platform
+
+You need to add the plugin [cordova-plugin-settings-hook](https://www.npmjs.com/package/cordova-plugin-settings-hook) and the following configuration on config.xml file inside the platform android section:
+
+    <platform name="android">
+        <preference name="android-applicationName" value="com.buongiorno.newton.cordova.NewtonApplication" />
+        ...
+    </platform>
 
 
 
