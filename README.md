@@ -5,18 +5,21 @@ Newton Platform Cordova Plugin
 
 ### iOS platform
 
-After installation of the plugin you have to change the Swift to objectiveC import header to the name of your project.
-
-For example:
-
-1. search for the following line in the file _AppDelegate+notification.m_
+1. After installation of the plugin you have to change the Swift to objectiveC import header to the name of your project.
+ 
+   For example:
+   
+   1. search for the following line in the file _AppDelegate+notification.m_
   
-    #import "Newton_Cordova_Demo-Swift.h"
+       #import "Newton_Cordova_Demo-Swift.h"
+   
+   
+   2. change it to the name of the current project, for example if the project is called GetStyle:
 
+      #import "GetStyle-Swift.h"
 
-2. change it to the name of the current project, for example if the project is called GetStyle:
-
-    #import "GetStyle-Swift.h"
+2. After installation of the plugin you also have to change the Objective-C Bridging Header to: $(PROJECT_DIR)/$(PROJECT_NAME)/Plugins/cordova-plugin-newton/Bridging-Header.h 
+You can find this setting in Build Setting -> Swift Compiler – General -> Objective-C Bridging Header
 
 ### Android platform
 
