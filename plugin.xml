@@ -19,8 +19,8 @@
     </js-module>
 
     <preference name="SECRET"/>
-    <preference name="SECRET_DEV"/>
-    <preference name="SENDER_ID"/>
+    <preference name="SECRETDEV"/>
+    <preference name="SENDERID"/>
     
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
@@ -31,8 +31,8 @@
         
         <config-file target="res/values/strings.xml" parent="/resources">
             <string name="NEWTON_SECRET">$SECRET</string>
-            <string name="NEWTON_SECRET_DEV">$SECRET_DEV</string>
-            <string name="NEWTON_SENDER_ID">$SENDER_ID</string>
+            <string name="NEWTON_SECRET_DEV">$SECRETDEV</string>
+            <string name="NEWTON_SENDER_ID">$SENDERID</string>
         </config-file>
 
         <framework src="src/android/build-extras.gradle" custom="true" type="gradleReference" />
@@ -92,7 +92,7 @@
             <string>$SECRET</string>
         </config-file>
         <config-file target="*-Info.plist" parent="NEWTON_SECRET_DEV">
-            <string>$SECRET_DEV</string>
+            <string>$SECRETDEV</string>
         </config-file>
         <config-file target="*-Info.plist" parent="NSAppTransportSecurity">
             <dict>
