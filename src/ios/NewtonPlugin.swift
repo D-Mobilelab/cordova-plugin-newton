@@ -22,9 +22,9 @@ func DDIlog(_ message: String) {
     var callbackId:String?
     
     // app status passed by appdelegate implemented in objc
-    public var notificationMessage:[String: Any] = [:]
-    public var isInline:Bool = false
-    public var coldstart:Bool = false
+    open var notificationMessage:[String: Any] = [:]
+    open var isInline:Bool = false
+    open var coldstart:Bool = false
     
     //public var localNotificationMessage:UILocalNotification
     
@@ -73,7 +73,7 @@ func DDIlog(_ message: String) {
         //localNotificationMessage = UILocalNotification()
     }
     
-    override public func onAppTerminate() {
+    override open func onAppTerminate() {
         //
     }
     
@@ -975,11 +975,11 @@ func DDIlog(_ message: String) {
     }
     */
     
-    public func saveNotificationMessage(_ message:[String: Any]) {
+    open func saveNotificationMessage(_ message:[String: Any]) {
         notificationMessage = message
     }
     
-    private func getNotificationMessage() -> [UIApplicationLaunchOptionsKey:Any] {
+    fileprivate func getNotificationMessage() -> [UIApplicationLaunchOptionsKey:Any] {
         
         var launchOptions = [UIApplicationLaunchOptionsKey:Any]()
         for (kind, value) in notificationMessage {
@@ -989,11 +989,11 @@ func DDIlog(_ message: String) {
         return launchOptions
     }
     
-    private func isNotificationMessageAvailable() -> Bool {
+    fileprivate func isNotificationMessageAvailable() -> Bool {
         return notificationMessage.count > 0
     }
     
-    private func clearNotificationMessage() {
+    fileprivate func clearNotificationMessage() {
         coldstart = false
         notificationMessage.removeAll()
     }
