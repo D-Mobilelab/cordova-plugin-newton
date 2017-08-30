@@ -133,7 +133,7 @@ func DDIlog(_ message: String) {
         }
         catch {
             initOk = false
-            initError = error as! String
+            initError = String(describing: error)
         }
         
         
