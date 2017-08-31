@@ -18,7 +18,7 @@ Newton Platform Cordova Plugin
 
       #import "GetStyle-Swift.h"
 
-2. After installation of the plugin you also have to change the Objective-C Bridging Header to: $(PROJECT_DIR)/$(PROJECT_NAME)/Plugins/cordova-plugin-newton/Bridging-Header.h 
+2. After installation of the plugin you also have to change the Objective-C Bridging Header to: $(PROJECT_DIR)/$(PROJECT_NAME)/Plugins/cordova-plugin-newton/NewtonPlugin-Bridging-Header.h 
 You can find this setting in Build Setting -> Swift Compiler – General -> Objective-C Bridging Header
 
 ### Android platform

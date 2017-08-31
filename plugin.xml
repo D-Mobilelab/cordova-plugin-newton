@@ -19,7 +19,7 @@
     </js-module>
 
     <preference name="SECRET"/>
-    <preference name="SECRETDEV"/>
+    <preference name="DEVSECRET"/>
     <preference name="SENDERID"/>
     
     <platform name="android">
@@ -31,7 +31,7 @@
         
         <config-file target="res/values/strings.xml" parent="/resources">
             <string name="NEWTON_SECRET">$SECRET</string>
-            <string name="NEWTON_SECRET_DEV">$SECRETDEV</string>
+            <string name="NEWTON_SECRET_DEV">$DEVSECRET</string>
             <string name="NEWTON_SENDER_ID">$SENDERID</string>
         </config-file>
 
@@ -92,7 +92,7 @@
             <string>$SECRET</string>
         </config-file>
         <config-file target="*-Info.plist" parent="NEWTON_SECRET_DEV">
-            <string>$SECRETDEV</string>
+            <string>$DEVSECRET</string>
         </config-file>
         <config-file target="*-Info.plist" parent="NSAppTransportSecurity">
             <dict>
