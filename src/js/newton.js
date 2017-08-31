@@ -96,6 +96,7 @@ var EventEmitter = new EventBus();
 var Newton = function(options) {
     EventEmitter.on('notification', options.pushCallback);
     EventEmitter.on('initialized', options.initCallback);
+    EventEmitter.on('error', options.errorCallback);
     
     this._handlers = {
         'notification': [],
@@ -1092,16 +1093,31 @@ var publicInterface = {
      * Get the newton instance the first time
      * @param {String} secretId
      * @param {NewtonSimpleObject} customData
-     * @param {Function} [pushCallback=function(){}]
-     * @param {Function} [initCallback=function(){}]
+     * @param {Function||Object} [{pushCallback=function(){},initCallback=function(){},errorCallback=function(){}]
      * @returns {Newton}
      */
-    getSharedInstanceWithConfig: function(secretId, customData, pushCallback, initCallback) {
+    getSharedInstanceWithConfig: function(secretId, customData, optionsParameter) {
+        function isFunction(functionToCheck) {
+            var getType = {};
+            return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
+        }
         var options = {
             customData: customData,
-            pushCallback: pushCallback ? pushCallback : function(){},
-            initCallback: initCallback ? initCallback : function(){}
+            pushCallback: function(){},
+            initCallback: function(){},
+            errorCallback: function(){}
         };
+        if (optionsParameter) {
+            // backward compatibility: 3rd params was pushCallback
+            if (isFunction(optionsParameter)) {
+                options.pushCallback = optionsParameter;
+            } else if (typeof optionsParameter === 'object') {
+                options.pushCallback = optionsParameter.pushCallback ? optionsParameter.pushCallback : options.pushCallback;
+                options.errorCallback = optionsParameter.errorCallback ? optionsParameter.errorCallback : options.errorCallback;
+                options.initCallback = optionsParameter.initCallback ? optionsParameter.initCallback : options.initCallback;
+            }
+        }
+        
         return newtonSingleton.get(options);
     },
     /**
