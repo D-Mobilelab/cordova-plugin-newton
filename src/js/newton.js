@@ -95,6 +95,8 @@ var EventEmitter = new EventBus();
  */
 var Newton = function(options) {
     EventEmitter.on('notification', options.pushCallback);
+    EventEmitter.on('initialized', options.initCallback);
+    
     this._handlers = {
         'notification': [],
         'error': [],
@@ -1091,12 +1093,14 @@ var publicInterface = {
      * @param {String} secretId
      * @param {NewtonSimpleObject} customData
      * @param {Function} [pushCallback=function(){}]
+     * @param {Function} [initCallback=function(){}]
      * @returns {Newton}
      */
-    getSharedInstanceWithConfig: function(secretId, customData, pushCallback) {
+    getSharedInstanceWithConfig: function(secretId, customData, pushCallback, initCallback) {
         var options = {
             customData: customData,
-            pushCallback: pushCallback ? pushCallback : function(){}
+            pushCallback: pushCallback ? pushCallback : function(){},
+            initCallback: initCallback ? initCallback : function(){}
         };
         return newtonSingleton.get(options);
     },
