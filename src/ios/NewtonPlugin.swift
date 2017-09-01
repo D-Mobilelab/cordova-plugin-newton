@@ -26,6 +26,8 @@ func DDIlog(_ message: String) {
     open var isInline:Bool = false
     open var coldstart:Bool = false
     
+    fileprivate var isAlreadyInitialized:Bool = false
+    
     //public var localNotificationMessage:UILocalNotification
     
     enum PluginError: Error {
@@ -87,45 +89,50 @@ func DDIlog(_ message: String) {
         
         
         do {
-            let newtonSecret:String = try self.getNewtonSecret();
-            
-            // create a dictionary for Newton Custom Data
-            var customDataDict: Dictionary<String, Any> = Dictionary()
-            
-            // if sent a valid custom data from JS use that
-            if command.argument(at: 0) != nil {
-                if let customDataArg = command.argument(at: 0) as? NSDictionary {
-                    if let customDataDictArg = customDataArg as? Dictionary<String, Any> {
-                        customDataDict = customDataDictArg
+            if (isAlreadyInitialized) {
+                initResult["initialized"] = true
+            } else {
+                let newtonSecret:String = try self.getNewtonSecret();
+                
+                // create a dictionary for Newton Custom Data
+                var customDataDict: Dictionary<String, Any> = Dictionary()
+                
+                // if sent a valid custom data from JS use that
+                if command.argument(at: 0) != nil {
+                    if let customDataArg = command.argument(at: 0) as? NSDictionary {
+                        if let customDataDictArg = customDataArg as? Dictionary<String, Any> {
+                            customDataDict = customDataDictArg
+                        }
                     }
                 }
-            }
             
-            let customData = NWSimpleObject(fromDictionary: customDataDict)
-            try customData?.setBool(key: "hybrid", value: true)
-            
-            
-            let newtonInstance = try Newton.getSharedInstanceWithConfig(conf: newtonSecret, customData: customData)
-            try newtonInstance.getPushManager().registerDevice();
-            
-            // save JS callback to call it when a push arrive
-            callbackId = command.callbackId
-            
-            try newtonInstance.getPushManager().setPushCallback(callback: { push in
-                DDIlog("A Push Notification has been handled. \(push.description)")
-                self.sendPushToJs(push)
-            })
-            
-            // if there are any notification saved process them
-            if isNotificationMessageAvailable() {
-                let launchOptions = getNotificationMessage()
+                let customData = NWSimpleObject(fromDictionary: customDataDict)
+                try customData?.setBool(key: "hybrid", value: true)
                 
-                try newtonInstance.getPushManager().setNotifyLaunchOptions(launchOptions:launchOptions)
                 
+                let newtonInstance = try Newton.getSharedInstanceWithConfig(conf: newtonSecret, customData: customData)
+                try newtonInstance.getPushManager().registerDevice();
+                
+                // save JS callback to call it when a push arrive
+                callbackId = command.callbackId
+                
+                try newtonInstance.getPushManager().setPushCallback(callback: { push in
+                    DDIlog("A Push Notification has been handled. \(push.description)")
+                    self.sendPushToJs(push)
+                })
+                
+                // if there are any notification saved process them
+                if isNotificationMessageAvailable() {
+                    let launchOptions = getNotificationMessage()
+                    
+                    try newtonInstance.getPushManager().setNotifyLaunchOptions(launchOptions:launchOptions)
+                    
+                }
                 clearNotificationMessage()
+                
+                isAlreadyInitialized = true
+                initResult["initialized"] = true
             }
-            
-            initResult["initialized"] = true
         }
         catch let err as PluginError {
             initOk = false
@@ -996,6 +1003,9 @@ func DDIlog(_ message: String) {
     fileprivate func clearNotificationMessage() {
         coldstart = false
         notificationMessage.removeAll()
+        
+        let app = UIApplication.shared
+        app.applicationIconBadgeNumber = 0
     }
     
     /*
