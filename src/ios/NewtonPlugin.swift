@@ -117,8 +117,9 @@ func DDIlog(_ message: String) {
                 callbackId = command.callbackId
                 
                 try newtonInstance.getPushManager().setPushCallback(callback: { push in
-                    DDIlog("A Push Notification has been handled. \(push.description)")
-                    self.sendPushToJs(push)
+                    NSLog("OOOOOOOOOOOOKKKKKK - A Push Notification has been handled")
+                    //DDIlog("A Push Notification has been handled. \(push.description)")
+                    //self.sendPushToJs(push)
                 })
                 
                 // if there are any notification saved process them
@@ -126,12 +127,14 @@ func DDIlog(_ message: String) {
                     let launchOptions = getNotificationMessage()
                     
                     try newtonInstance.getPushManager().setNotifyLaunchOptions(launchOptions:launchOptions)
-                    
+                    DDIlog("LaunchOptions sent to Newton: \(launchOptions as AnyObject)")
                 }
                 clearNotificationMessage()
                 
                 isAlreadyInitialized = true
                 initResult["initialized"] = true
+                DDIlog("initialization done! Newton Version: \(Newton.versionString) Build: \(Newton.buildNumber) Environment: \(newtonInstance.environmentString)")
+
             }
         }
         catch let err as PluginError {
@@ -988,12 +991,22 @@ func DDIlog(_ message: String) {
     
     fileprivate func getNotificationMessage() -> [UIApplicationLaunchOptionsKey:Any] {
         
-        var launchOptions = [UIApplicationLaunchOptionsKey:Any]()
+        var notificationOptions = [UIApplicationLaunchOptionsKey:Any]()
         for (kind, value) in notificationMessage {
-            launchOptions[UIApplicationLaunchOptionsKey(kind)] = value
+            notificationOptions[UIApplicationLaunchOptionsKey(kind)] = value
         }
+        return notificationOptions
+        //let launchOptions = [UIApplicationLaunchOptionsKey.remoteNotification:notificationOptions]
+        //return launchOptions
+    }
+    
+    fileprivate func getNotifyLaunchOptions() -> [UIApplicationLaunchOptionsKey:Any] {
         
-        return launchOptions
+        var notificationOptions = [UIApplicationLaunchOptionsKey:Any]()
+        for (kind, value) in notificationMessage {
+            notificationOptions[UIApplicationLaunchOptionsKey(kind)] = value
+        }
+        return notificationOptions
     }
     
     fileprivate func isNotificationMessageAvailable() -> Bool {
@@ -1013,6 +1026,7 @@ func DDIlog(_ message: String) {
      * otherwise the push data will be sent on plugin initialization
     */
     func onNotifyLaunchOptions() {
+        DDIlog("onNotifyLaunchOptions() start")
         
         // if plugin has been initialized and there is a push saved then proceed
         if (self.callbackId != nil && isNotificationMessageAvailable()) {
@@ -1022,13 +1036,14 @@ func DDIlog(_ message: String) {
             do {
                 let newtonInstance = try Newton.getSharedInstance()
                 
-                let launchOptions = getNotificationMessage()
+                let launchOptions = getNotifyLaunchOptions()
                 
                 try newtonInstance.getPushManager().setNotifyLaunchOptions(launchOptions:launchOptions)
                 
                 clearNotificationMessage()
                 
-                DDIlog("Push data sent to Newton")
+                DDIlog("onNotifyLaunchOptions() Push data sent to Newton: \(launchOptions as AnyObject)")
+                dump(launchOptions)
                 
                 return
             }
@@ -1101,6 +1116,7 @@ func DDIlog(_ message: String) {
      * otherwise the push data will be sent on plugin initialization
      */
     func onReceiveRemoteNotification() {
+        DDIlog("onReceiveRemoteNotification() start")
         
         // if plugin has been initialized and there is a push saved then proceed
         if (self.callbackId != nil && isNotificationMessageAvailable()) {
@@ -1116,7 +1132,8 @@ func DDIlog(_ message: String) {
                 
                 clearNotificationMessage()
                 
-                DDIlog("Push data sent to Newton")
+                DDIlog("onReceiveRemoteNotification() Push data sent to Newton: \(userInfo as AnyObject)")
+                dump(userInfo)
                 
                 return
             }
