@@ -27,7 +27,7 @@ func DDIlog(_ message: String) {
     open var coldstart:Bool = false
     
     fileprivate var isAlreadyInitialized:Bool = false
-
+ 
     //public var localNotificationMessage:UILocalNotification
     
     enum PluginError: Error {
@@ -126,7 +126,7 @@ func DDIlog(_ message: String) {
                 if isNotificationMessageAvailable() {
                     let launchOptions = getNotificationMessage()
                     
-                    try newtonInstance.getPushManager().setNotifyLaunchOptions(launchOptions:launchOptions)
+                    _ = try? newtonInstance.getPushManager().setNotifyLaunchOptions(launchOptions:launchOptions)
                     DDIlog("LaunchOptions sent to Newton: \(launchOptions as AnyObject)")
                 }
 
@@ -135,7 +135,7 @@ func DDIlog(_ message: String) {
                 isAlreadyInitialized = true
                 initResult["initialized"] = true
                 DDIlog("initialization done! Newton Version: \(Newton.versionString) Build: \(Newton.buildNumber) Environment: \(newtonInstance.environmentString)")
-            }                
+            }
         }
         catch let err as PluginError {
             initOk = false
@@ -143,7 +143,7 @@ func DDIlog(_ message: String) {
         }
         catch {
             initOk = false
-            initError = String(describing: error)
+            initError = error as! String
         }
         
         
@@ -996,9 +996,7 @@ func DDIlog(_ message: String) {
             launchOptions[UIApplicationLaunchOptionsKey(kind)] = value
         }
         
-        var launchOptionsForNewton:[UIApplicationLaunchOptionsKey: Any] = [:]
-        launchOptionsForNewton[UIApplicationLaunchOptionsKey.remoteNotification] = launchOptions
-        return launchOptionsForNewton
+        return launchOptions
     }
     
     fileprivate func isNotificationMessageAvailable() -> Bool {
@@ -1021,7 +1019,7 @@ func DDIlog(_ message: String) {
         DDIlog("onNotifyLaunchOptions() start")
         
         // if plugin has been initialized and there is a push saved then proceed
-        if (self.callbackId != nil && isNotificationMessageAvailable()) {
+        if (self.callbackId != nil && !self.callbackId!.isEmpty && isNotificationMessageAvailable()) {
             
             var errorDesc:String = "Unknown error"
             
@@ -1036,7 +1034,7 @@ func DDIlog(_ message: String) {
                 clearNotificationMessage()
                 
                 DDIlog("onNotifyLaunchOptions() Push data sent to Newton: \(launchOptions as AnyObject)")
-                dump(launchOptions)
+                //dump(launchOptions)
                 
                 return
             }
@@ -1053,7 +1051,7 @@ func DDIlog(_ message: String) {
     
     func onRegisterForRemoteNotificationsOk(_ token:Data) {
         // if plugin has been initialized then proceed
-        if (self.callbackId != nil) {
+        if (self.callbackId != nil && !self.callbackId!.isEmpty) {
             
             var errorDesc:String = "Unknown error"
             
@@ -1080,7 +1078,7 @@ func DDIlog(_ message: String) {
     
     func onRegisterForRemoteNotificationsKo(_ error:Error) {
         // if plugin has been initialized then proceed
-        if (self.callbackId != nil) {
+        if (self.callbackId != nil && !self.callbackId!.isEmpty) {
             
             var errorDesc:String = "Unknown error"
             
@@ -1112,7 +1110,7 @@ func DDIlog(_ message: String) {
         DDIlog("onReceiveRemoteNotification() start")
         
         // if plugin has been initialized and there is a push saved then proceed
-        if (self.callbackId != nil && isNotificationMessageAvailable()) {
+        if (self.callbackId != nil && !self.callbackId!.isEmpty && isNotificationMessageAvailable()) {
             
             var errorDesc:String = "Unknown error"
             
@@ -1125,7 +1123,7 @@ func DDIlog(_ message: String) {
                 
                 clearNotificationMessage()
                 DDIlog("onReceiveRemoteNotification() Push data sent to Newton: \(userInfo as AnyObject)")
-                dump(userInfo)
+                //dump(userInfo)
                 
                 return
             }
@@ -1144,7 +1142,7 @@ func DDIlog(_ message: String) {
     func onReceiveLocalNotification() {
         
         // if plugin has been initialized and there is a push saved then proceed
-        if (self.callbackId != nil) {
+        if (self.callbackId != nil && !self.callbackId!.isEmpty) {
             
             var errorDesc:String = "Unknown error"
             
@@ -1184,7 +1182,7 @@ func DDIlog(_ message: String) {
     
     func sendPushToJs(_ push:AnyObject) {
         //
-        if (self.callbackId != nil) {
+        if (self.callbackId != nil && !self.callbackId!.isEmpty) {
             
             var pushData = [String:Any]()
             pushData["isRemote"] = false

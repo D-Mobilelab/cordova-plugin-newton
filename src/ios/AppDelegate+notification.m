@@ -92,7 +92,7 @@ static char coldstartKey;
         NSDictionary *launchOptions = [notification userInfo];
         if (launchOptions) {
             NSLog(@"[NewtonPlugin:objc] - coldstart");
-            self.launchNotification = [launchOptions objectForKey: @"UIApplicationLaunchOptionsRemoteNotificationKey"];
+            self.launchNotification = launchOptions;
             self.coldstart = [NSNumber numberWithBool:YES];
             
         } else {
