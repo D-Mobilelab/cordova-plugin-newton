@@ -21,6 +21,8 @@ Newton Platform Cordova Plugin
 2. After installation of the plugin you also have to change the Objective-C Bridging Header to: $(PROJECT_DIR)/$(PROJECT_NAME)/Plugins/cordova-plugin-newton/NewtonPlugin-Bridging-Header.h 
 You can find this setting in Build Setting -> Swift Compiler – General -> Objective-C Bridging Header
 
+3. Change project properties in XCode: go to Capabilities and set Push Notification to ON
+
 ### Android platform
 
 You need to add the plugin [cordova-plugin-settings-hook](https://www.npmjs.com/package/cordova-plugin-settings-hook) and the following configuration on config.xml file inside the platform android section:
