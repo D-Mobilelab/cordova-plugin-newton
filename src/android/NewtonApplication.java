@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.buongiorno.newton.BuildConfig;
 import com.buongiorno.newton.Newton;
 import com.buongiorno.newton.exceptions.NewtonException;
 import com.buongiorno.newton.exceptions.NewtonNotInitializedException;
@@ -25,6 +26,7 @@ import org.json.JSONException;
 
 public class NewtonApplication extends Application {
     private static final String META_SECRET = "newton_secret";
+    private static final String META_SECRET_DEV = "newton_secret_dev";
 
     public static final String LOG_TAG = "NewtonApplication";
 
@@ -38,6 +40,9 @@ public class NewtonApplication extends Application {
                             getApplicationContext().getPackageName(),
                             PackageManager.GET_META_DATA);
             Bundle bundle = ai.metaData;
+            if (BuildConfig.DEBUG) {
+                return bundle.getString(META_SECRET_DEV);
+            }
             return bundle.getString(META_SECRET);
 
         } catch (PackageManager.NameNotFoundException e) {
