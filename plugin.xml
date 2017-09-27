@@ -110,5 +110,6 @@
         <framework src="src/ios/Newton.framework" embed="true" custom="true" />
         <framework src="src/ios/CommonCrypto.framework" embed="true" custom="true" />
 
+        <dependency id="cordova-plugin-add-swift-support" url="https://github.com/D-Mobilelab/cordova-plugin-add-swift-support.git" commit="master" />
     </platform>
 </plugin>
