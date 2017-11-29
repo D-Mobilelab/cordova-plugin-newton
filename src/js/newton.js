@@ -95,6 +95,9 @@ var EventEmitter = new EventBus();
  */
 var Newton = function(options) {
     EventEmitter.on('notification', options.pushCallback);
+    EventEmitter.on('initialized', options.initCallback);
+    EventEmitter.on('error', options.errorCallback);
+    
     this._handlers = {
         'notification': [],
         'error': [],
@@ -155,7 +158,7 @@ var Newton = function(options) {
 
     // wait at least one process tick to allow event subscriptions
     setTimeout(function() {
-        exec(success, fail, 'Newton', 'init', [options]);
+        exec(success, fail, 'Newton', 'initialize', [options]);
     }, 1);
 };
 
@@ -1090,14 +1093,31 @@ var publicInterface = {
      * Get the newton instance the first time
      * @param {String} secretId
      * @param {NewtonSimpleObject} customData
-     * @param {Function} [pushCallback=function(){}]
+     * @param {Function||Object} [{pushCallback=function(){},initCallback=function(){},errorCallback=function(){}]
      * @returns {Newton}
      */
-    getSharedInstanceWithConfig: function(secretId, customData, pushCallback) {
+    getSharedInstanceWithConfig: function(secretId, customData, optionsParameter) {
+        function isFunction(functionToCheck) {
+            var getType = {};
+            return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
+        }
         var options = {
             customData: customData,
-            pushCallback: pushCallback ? pushCallback : function(){}
+            pushCallback: function(){},
+            initCallback: function(){},
+            errorCallback: function(){}
         };
+        if (optionsParameter) {
+            // backward compatibility: 3rd params was pushCallback
+            if (isFunction(optionsParameter)) {
+                options.pushCallback = optionsParameter;
+            } else if (typeof optionsParameter === 'object') {
+                options.pushCallback = optionsParameter.pushCallback ? optionsParameter.pushCallback : options.pushCallback;
+                options.errorCallback = optionsParameter.errorCallback ? optionsParameter.errorCallback : options.errorCallback;
+                options.initCallback = optionsParameter.initCallback ? optionsParameter.initCallback : options.initCallback;
+            }
+        }
+        
         return newtonSingleton.get(options);
     },
     /**

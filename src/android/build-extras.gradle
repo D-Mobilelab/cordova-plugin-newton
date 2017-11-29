@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.buongiorno:newton:1.12.2@aar'
+    compile 'com.buongiorno:newton:1.14.0@aar'
 }
 
 android {

@@ -9,12 +9,14 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.buongiorno.newton.BuildConfig;
 import com.buongiorno.newton.Newton;
 import com.buongiorno.newton.exceptions.NewtonException;
 import com.buongiorno.newton.exceptions.NewtonNotInitializedException;
 import com.buongiorno.newton.exceptions.PushRegistrationException;
 import com.buongiorno.newton.interfaces.IPushCallback;
 import com.buongiorno.newton.push.PushObject;
+import com.buongiorno.newton.push.StandardPushObject;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import org.json.JSONException;
@@ -25,6 +27,7 @@ import org.json.JSONException;
 
 public class NewtonApplication extends Application {
     private static final String META_SECRET = "newton_secret";
+    private static final String META_SECRET_DEV = "newton_secret_dev";
 
     public static final String LOG_TAG = "NewtonApplication";
 
@@ -38,6 +41,9 @@ public class NewtonApplication extends Application {
                             getApplicationContext().getPackageName(),
                             PackageManager.GET_META_DATA);
             Bundle bundle = ai.metaData;
+            if (BuildConfig.DEBUG) {
+                return bundle.getString(META_SECRET_DEV);
+            }
             return bundle.getString(META_SECRET);
 
         } catch (PackageManager.NameNotFoundException e) {
@@ -77,11 +83,18 @@ public class NewtonApplication extends Application {
                 @Override
                 public void onSuccess(PushObject push) {
 
-                    Log.i(LOG_TAG, "Got push notification: " + push.toString());
+                    if (! push.getType().equals(PushObject.PushType.NORMAL)) {
+                        Log.i(LOG_TAG, "Got push notification not NORMAL, not processing it.");
+                        return;
+                    }
+
+                    StandardPushObject standardPush = (StandardPushObject) push;
+
+                    Log.i(LOG_TAG, "Got push notification: " + standardPush.toString());
 
                     boolean isPushPluginActive = NewtonPlugin.isActive();
 
-                    NewtonPlugin.sendPushToJs(push);
+                    NewtonPlugin.sendPushToJs(standardPush);
 
                     // FIXME, verify if it works when not in foreground
                     if (!isPushPluginActive) {
