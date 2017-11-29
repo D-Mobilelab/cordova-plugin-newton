@@ -1,6 +1,8 @@
 # cordova-plugin-newton
 Newton Platform Cordova Plugin
 
+This version use the window namespace "Newton" overriding anything already defined there.
+
 ## Installation
 
 ### iOS platform
