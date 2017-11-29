@@ -3,9 +3,10 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
+        "cordova-android": "^6.4.0",
         "cordova-ios": "~4",
         "cordova-plugin-newton": "file:///Users/mirco.cipriani/Development/bitbucket-ibridi/cordova-plugin-newton",
-        "cordova-plugin-settings-hook": "~0",
+        "cordova-plugin-settings-hook": "^0.2.7",
         "onsenui": "^2.4.0",
         "react": "^15.6.1",
         "react-dom": "^15.6.1",
@@ -26,13 +27,16 @@
     },
     "cordova": {
         "platforms": [
+            "android",
             "ios"
         ],
         "plugins": {
             "cordova-plugin-newton": {
                 "SECRET": "&lt;sec_ret&gt;",
                 "SENDER_ID": "48133420841",
-                "SECRET_DEV": "&lt;sec_ret&gt;"
+                "SECRET_DEV": "&lt;sec_ret&gt;",
+                "SENDERID": "48133420841",
+                "DEVSECRET": "&lt;sec_ret&gt;"
             },
             "cordova-plugin-settings-hook": {}
         }

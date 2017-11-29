@@ -99,11 +99,14 @@
         <splash density="port-xxxhdpi" src="resources/android/splash/drawable-port-xxxhdpi-screen.png" />
     </platform>
     <icon src="resources/android/icon/drawable-xhdpi-icon.png" />
+    <engine name="android" spec="^6.4.0" />
     <engine name="ios" spec="~4" />
     <plugin name="cordova-plugin-newton" spec="file:///Users/mirco.cipriani/Development/bitbucket-ibridi/cordova-plugin-newton">
         <variable name="SECRET" value="&amp;lt;sec_ret&amp;gt;" />
         <variable name="SENDER_ID" value="48133420841" />
         <variable name="SECRET_DEV" value="&amp;lt;sec_ret&amp;gt;" />
+        <variable name="SENDERID" value="48133420841" />
+        <variable name="DEVSECRET" value="&amp;lt;sec_ret&amp;gt;" />
     </plugin>
-    <plugin name="cordova-plugin-settings-hook" spec="~0" />
+    <plugin name="cordova-plugin-settings-hook" spec="^0.2.7" />
 </widget>

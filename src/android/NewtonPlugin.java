@@ -38,6 +38,7 @@ import com.buongiorno.newton.oauth.flows.CustomLoginFlow;
 import com.buongiorno.newton.oauth.flows.ExternalLoginFlow;
 import com.buongiorno.newton.oauth.flows.LoginBuilder;
 import com.buongiorno.newton.push.PushObject;
+import com.buongiorno.newton.push.StandardPushObject;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import java.util.ArrayList;
@@ -62,7 +63,7 @@ public class NewtonPlugin extends CordovaPlugin {
     private static CallbackContext loginContext;
     private static CordovaWebView gWebView;
     private static boolean gForeground = false;
-    private static List<PushObject> gCachedPushes = Collections.synchronizedList(new ArrayList<PushObject>());
+    private static List<StandardPushObject> gCachedPushes = Collections.synchronizedList(new ArrayList<StandardPushObject>());
 
     /**
      * Gets the application context from cordova's main activity.
@@ -155,7 +156,7 @@ public class NewtonPlugin extends CordovaPlugin {
                         if (!gCachedPushes.isEmpty()) {
                             Log.v(LOG_TAG, "sending cached extras");
                             synchronized(gCachedPushes) {
-                                Iterator<PushObject> gCachedPushesIterator = gCachedPushes.iterator();
+                                Iterator<StandardPushObject> gCachedPushesIterator = gCachedPushes.iterator();
                                 while (gCachedPushesIterator.hasNext()) {
                                     sendPushToJs(gCachedPushesIterator.next());
                                 }
@@ -809,7 +810,7 @@ public class NewtonPlugin extends CordovaPlugin {
      * Sends the pushbundle extras to the client application.
      * If the client application isn't currently active, it is cached for later processing.
      */
-    public static void sendPushToJs(PushObject push) {
+    public static void sendPushToJs(StandardPushObject push) {
         if (push != null) {
             if (gWebView != null && pushContext != null) {
                 PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, convertPushToJson(push));
@@ -825,34 +826,17 @@ public class NewtonPlugin extends CordovaPlugin {
     /*
      * serializes a bundle to JSON.
      */
-    private static JSONObject convertPushToJson(PushObject push) {
+    private static JSONObject convertPushToJson(StandardPushObject push) {
         Log.d(LOG_TAG, "convert push to json");
         try {
             JSONObject json = new JSONObject();
-            JSONObject customs = new JSONObject();
 
-            json.put("isRemote", push.isRemote());
-            json.put("isRich", push.isRich());
-            json.put("isSilent", push.isSilent());
-            json.put("isShown", push.isShown());
             json.put("id", push.getPushId());
             json.put("body", push.getBody());
             json.put("title", push.getTitle());
 
-
-            HashMap<String, Object> customFields = push.getCustomFields();
-
-            Iterator<String> it = customFields.keySet().iterator();
-
-            while (it.hasNext()) {
-                String key = it.next();
-                Object value = customFields.get(key);
-
-                customs.put(key, value);
-
-                Log.d(LOG_TAG, "key = " + key);
-                Log.d(LOG_TAG, "value = " + value.toString());
-            }
+            SimpleObject customFields = push.getCustomFields();
+            JSONObject customs = new JSONObject(customFields.toJSONString());
 
             json.put("customs", customs);
 
