@@ -12,10 +12,11 @@
 
     <engines>
         <engine name="cordova-ios" version=">=4.0.0" />
+        <engine name="cordova-android" version=">=6.0.0" />
     </engines>
 
     <js-module src="src/js/newton.js" name="Newton">
-        <clobbers target="Newton"/>
+        <clobbers target="NativeNewton"/>
     </js-module>
 
     <preference name="SECRET"/>
