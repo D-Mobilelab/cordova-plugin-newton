@@ -36,6 +36,7 @@
     <preference name="PageLength" value="0" />
     <preference name="PaginationBreakingMode" value="page" />
     <preference name="PaginationMode" value="unpaginated" />
+    <preference name="UseSwiftLanguageVersion" value="4" />
     <feature name="App">
         <param name="android-package" value="org.apache.cordova.App" />
     </feature>
