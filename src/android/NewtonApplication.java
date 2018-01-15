@@ -9,7 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.buongiorno.newton.BuildConfig;
+import io.cordova.hellocordova.BuildConfig;
 import com.buongiorno.newton.Newton;
 import com.buongiorno.newton.exceptions.NewtonException;
 import com.buongiorno.newton.exceptions.NewtonNotInitializedException;
@@ -44,6 +44,7 @@ public class NewtonApplication extends Application {
             if (BuildConfig.DEBUG) {
                 return bundle.getString(META_SECRET_DEV);
             }
+            /**CHANGE IT! */
             return bundle.getString(META_SECRET);
 
         } catch (PackageManager.NameNotFoundException e) {
@@ -83,7 +84,7 @@ public class NewtonApplication extends Application {
                 @Override
                 public void onSuccess(PushObject push) {
 
-                    if (! push.getType().equals(PushObject.PushType.NORMAL)) {
+                    if (!push.getType().equals(PushObject.PushType.NORMAL)) {
                         Log.i(LOG_TAG, "Got push notification not NORMAL, not processing it.");
                         return;
                     }
@@ -119,7 +120,6 @@ public class NewtonApplication extends Application {
 
         } catch (NewtonException e) {
             Log.e(LOG_TAG, "NewtonException - Newton initialization error:" + e.getMessage(), e);
-
         }
     }
 }
