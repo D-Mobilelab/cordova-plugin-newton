@@ -1,13 +1,8 @@
 package com.buongiorno.newton.cordova;
 
 import android.app.Activity;
-import android.app.Application;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
 import android.util.Log;
 
 import org.apache.cordova.CallbackContext;
@@ -33,17 +28,12 @@ import com.buongiorno.newton.exceptions.UserAlreadyLoggedException;
 import com.buongiorno.newton.exceptions.UserMetaInfoException;
 import com.buongiorno.newton.interfaces.IBasicResponse;
 import com.buongiorno.newton.interfaces.IMetaInfoCallBack;
-import com.buongiorno.newton.interfaces.IPushCallback;
-import com.buongiorno.newton.oauth.flows.CustomLoginFlow;
-import com.buongiorno.newton.oauth.flows.ExternalLoginFlow;
 import com.buongiorno.newton.oauth.flows.LoginBuilder;
-import com.buongiorno.newton.push.PushObject;
 import com.buongiorno.newton.push.StandardPushObject;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -164,8 +154,6 @@ public class NewtonPlugin extends CordovaPlugin {
                             gCachedPushes.clear();
                         }
 
-
-
                     } catch (NewtonException e) {
                         Log.e(LOG_TAG, "NewtonException - Newton initialization error:" + e.getMessage(), e);
                         callbackContext.error("NewtonException - Newton initialization error: "+e.getMessage());
@@ -187,8 +175,82 @@ public class NewtonPlugin extends CordovaPlugin {
                     }
                 }
             });
-        }
-        else if ("unregister".equals(action)) {
+        } else if("registerDevice".equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Log.v(LOG_TAG, "registerDevice: data=" + data.toString());
+                        newtonEngine = Newton.getSharedInstance();
+                        newtonEngine.getPushManager().registerDevice();
+                        callbackContext.success();
+                    } catch (PushRegistrationException e) {
+                        callbackContext.error("" + e.getMessage());
+                    } catch(NewtonNotInitializedException e) {
+                        callbackContext.error("" + e.getMessage());
+                    } catch(NewtonException e) {
+                        callbackContext.error("" + e.getMessage());
+                    }
+                }
+            });
+        } else if("attachMasterSession".equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Log.v(LOG_TAG, "sessionId: data=" + data.toString());
+                        String sessionId = data.getString(0);
+                        String newtonToken = data.getString(1);
+                        SimpleObject extraData;
+                        JSONObject jo = data.optJSONObject(2);
+
+                        newtonEngine = Newton.getSharedInstance();
+                        if(jo != null) {
+                            extraData = SimpleObject.fromJSONObject(jo);
+                            //newtonEngine.attachMasterSession(sessionId, newtonToken, extraData);
+                        } else {
+                            //newtonEngine.attachMasterSession(sessionId, newtonToken);
+                        }
+                        callbackContext.success();
+                    } catch(Exception e) {
+                        callbackContext.error("" + e.getMessage());
+                    }
+                }
+            });
+        } else if("setPushCallback".equals(action)) {
+                cordova.getThreadPool().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Log.v(LOG_TAG, "setPushCallback");
+                            if(pushContext == null) {
+                                pushContext = callbackContext;
+                            }
+
+                            PluginResult pluginResult = new PluginResult(PluginResult.Status.OK);
+                            pluginResult.setKeepCallback(true);
+                            pushContext.sendPluginResult(pluginResult);
+
+                            // if there are any push saved emit them
+                            if (!gCachedPushes.isEmpty()) {
+                                Log.v(LOG_TAG, "sending cached extras");
+                                synchronized(gCachedPushes) {
+                                    Iterator<StandardPushObject> gCachedPushesIterator = gCachedPushes.iterator();
+                                    while (gCachedPushesIterator.hasNext()) {
+                                        sendPushToJs(gCachedPushesIterator.next());
+                                    }
+                                }
+                                gCachedPushes.clear();
+                            }
+                            
+                        } catch(Exception e) {
+                            String errorMessage = "setPushCallback: " + e.getMessage();
+                            Log.e(LOG_TAG, errorMessage);
+                            callbackContext.error(errorMessage);
+                        }
+                    }
+                });
+        } else if ("unregister".equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
 
@@ -199,11 +261,9 @@ public class NewtonPlugin extends CordovaPlugin {
                     callbackContext.success();
                 }
             });
-        }
-        else if ("finish".equals(action)) {
+        } else if ("finish".equals(action)) {
             callbackContext.success();
-        }
-        else if ("hasPermission".equals(action)) {
+        } else if ("hasPermission".equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
                     JSONObject jo = new JSONObject();
@@ -219,8 +279,7 @@ public class NewtonPlugin extends CordovaPlugin {
                     }
                 }
             });
-        }
-        else if ("setApplicationIconBadgeNumber".equals(action)) {
+        } else if ("setApplicationIconBadgeNumber".equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
                     Log.v(LOG_TAG, "setApplicationIconBadgeNumber: data=" + data.toString());
@@ -232,8 +291,7 @@ public class NewtonPlugin extends CordovaPlugin {
                     callbackContext.success();
                 }
             });
-        }
-        else if ("clearAllNotifications".equals(action)) {
+        } else if ("clearAllNotifications".equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
                     Log.v(LOG_TAG, "clearAllNotifications");
@@ -241,8 +299,7 @@ public class NewtonPlugin extends CordovaPlugin {
                     callbackContext.success();
                 }
             });
-        }
-        else if ("sendEvent".equals(action)) {
+        } else if ("sendEvent".equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
@@ -278,8 +335,7 @@ public class NewtonPlugin extends CordovaPlugin {
                     callbackContext.success();
                 }
             });
-        }
-        else if ("startLoginFlowWithParams".equals(action)) {
+        } else if ("startLoginFlowWithParams".equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
@@ -843,8 +899,7 @@ public class NewtonPlugin extends CordovaPlugin {
             Log.v(LOG_TAG, "convertPushToJson: " + json.toString());
 
             return json;
-        }
-        catch( JSONException e) {
+        } catch(JSONException e) {
             Log.e(LOG_TAG, "extrasToJSON: JSON exception");
         }
         return null;
