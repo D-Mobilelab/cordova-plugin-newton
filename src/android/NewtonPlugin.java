@@ -866,7 +866,7 @@ public class NewtonPlugin extends CordovaPlugin {
         if (push != null) {
             if (gWebView != null && pushContext != null) {
                 Log.v(LOG_TAG, "sendPushToJs: send push now!");
-                PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, convertPushToJson(push));
+                PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, pushToJson(push));
                 pluginResult.setKeepCallback(true);
                 pushContext.sendPluginResult(pluginResult);
             } else {
@@ -879,7 +879,7 @@ public class NewtonPlugin extends CordovaPlugin {
     /*
      * serializes a bundle to JSON.
      */
-    private static JSONObject convertPushToJson(StandardPushObject push) {
+    private static JSONObject pushToJson(StandardPushObject push) {
         Log.d(LOG_TAG, "convert push to json");
         try {
             JSONObject json = new JSONObject();
@@ -888,13 +888,15 @@ public class NewtonPlugin extends CordovaPlugin {
             json.put("body", push.getBody());
             json.put("title", push.getTitle());
 
-            SimpleObject customFields = push.getCustomFields();
-            JSONObject customs = new JSONObject(customFields.toJSONString());
-
-            json.put("customs", customs);
-
+            SimpleObject customFields;
+            if(push.hasCustomFields()) {
+                JSONObject customs = new JSONObject(push.getCustomFields().toJSONString());
+                json.put("customs", customs);
+            } else {
+                json.put("customs", JSONObject.NULL);
+            }
+            
             Log.v(LOG_TAG, "convertPushToJson: " + json.toString());
-
             return json;
         } catch(JSONException e) {
             Log.e(LOG_TAG, "extrasToJSON: JSON exception");
