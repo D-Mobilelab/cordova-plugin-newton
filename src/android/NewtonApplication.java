@@ -115,7 +115,7 @@ public class NewtonApplication extends Application {
                 }
             });
 
-            Log.i(LOG_TAG, "Newton initialization from Application Modul OK");
+            Log.i(LOG_TAG, "Newton initialization from Application Module OK");
 
 
         } catch (NewtonException e) {

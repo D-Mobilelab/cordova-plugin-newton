@@ -222,14 +222,10 @@ public class NewtonPlugin extends CordovaPlugin {
                     @Override
                     public void run() {
                         try {
-                            Log.v(LOG_TAG, "setPushCallback");
                             if(pushContext == null) {
+                                Log.v(LOG_TAG, "setPushCallback for first time");
                                 pushContext = callbackContext;
                             }
-
-                            PluginResult pluginResult = new PluginResult(PluginResult.Status.OK);
-                            pluginResult.setKeepCallback(true);
-                            pushContext.sendPluginResult(pluginResult);
 
                             // if there are any push saved emit them
                             if (!gCachedPushes.isEmpty()) {
@@ -869,6 +865,7 @@ public class NewtonPlugin extends CordovaPlugin {
     public static void sendPushToJs(StandardPushObject push) {
         if (push != null) {
             if (gWebView != null && pushContext != null) {
+                Log.v(LOG_TAG, "sendPushToJs: send push now!");
                 PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, convertPushToJson(push));
                 pluginResult.setKeepCallback(true);
                 pushContext.sendPluginResult(pluginResult);
