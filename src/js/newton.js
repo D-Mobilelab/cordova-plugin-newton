@@ -137,6 +137,15 @@ NativeNewton.prototype.setPushCallback = function(pushCallback) {
     }, this.nativeClassName, 'setPushCallback', []);
 }
 
+NativeNewton.prototype.buy = function(offerId, nativeItemId, success, error) {
+    if ('Promise' in window) {
+        return new Promise(function(resolve, reject) {
+            return exec(resolve, reject, 'Newton', 'buy', [offerId, nativeItemId]); 
+        })
+    }
+    return exec(success, error, 'Newton', 'buy', [offerId, nativeItemId]);
+}
+
 var NativeNewtonInstance = new NativeNewton('Newton');
 module.exports = Object.freeze(NativeNewtonInstance);
 

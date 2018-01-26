@@ -48,6 +48,7 @@
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
             <uses-permission android:name="android.permission.WAKE_LOCK"/>
             <uses-permission android:name="android.permission.VIBRATE"/>
+            <uses-permission android:name="com.android.vending.BILLING" />
             
             <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
             <uses-permission android:name="${applicationId}.permission.C2D_MESSAGE"/>
@@ -70,11 +71,11 @@
             <meta-data android:name="newton_sender_id" android:value="@string/NEWTON_SENDER_ID" />
             
         </config-file>
-        
+
         <source-file src="src/android/PermissionUtils.java" target-dir="src/com/buongiorno/newton/cordova/"/>
         <source-file src="src/android/NewtonApplication.java" target-dir="src/com/buongiorno/newton/cordova/"/>
         <source-file src="src/android/NewtonPlugin.java" target-dir="src/com/buongiorno/newton/cordova/"/>
-
+        <source-file src="src/android/billing/IInAppBillingService.aidl" target-dir="src/com/android/vending/billing" />
     </platform>
 
     <platform name="ios">

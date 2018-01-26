@@ -1,6 +1,5 @@
 package com.buongiorno.newton.cordova;
 
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
@@ -9,21 +8,12 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 
-import io.cordova.hellocordova.BuildConfig;
+import io.cordova.hellocordova.newton.BuildConfig;
 import com.buongiorno.newton.Newton;
 import com.buongiorno.newton.exceptions.NewtonException;
-import com.buongiorno.newton.exceptions.NewtonNotInitializedException;
-import com.buongiorno.newton.exceptions.PushRegistrationException;
 import com.buongiorno.newton.interfaces.IPushCallback;
 import com.buongiorno.newton.push.PushObject;
 import com.buongiorno.newton.push.StandardPushObject;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-
-import org.json.JSONException;
-
-/**
- * Created by mirco.cipriani on 24/11/16.
- */
 
 public class NewtonApplication extends Application {
     private static final String META_SECRET = "newton_secret";
@@ -44,7 +34,6 @@ public class NewtonApplication extends Application {
             if (BuildConfig.DEBUG) {
                 return bundle.getString(META_SECRET_DEV);
             }
-            /**CHANGE IT! */
             return bundle.getString(META_SECRET);
 
         } catch (PackageManager.NameNotFoundException e) {
@@ -58,20 +47,21 @@ public class NewtonApplication extends Application {
         } catch (Exception e) {
             Log.e(LOG_TAG, "Failed to load meta-data, Exception: " + e.getMessage(), e);
             throw new Exception("Failed to load meta-data, Exception: "+e.getMessage());
-
         }
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
+        registerPushCallback();
+    }
 
-        String newtonSecret = "";
+    private void registerPushCallback() {
+        String newtonSecret;
 
         // load newton conf from manifest meta data
         try {
             newtonSecret = getNewtonSecret();
-
         } catch (Exception e) {
             Log.e(LOG_TAG, "Failed initialize Newton, cannot load secret from manifest metadata");
             return;
@@ -114,10 +104,7 @@ public class NewtonApplication extends Application {
                     context.startActivity(launchIntent);
                 }
             });
-
             Log.i(LOG_TAG, "Newton initialization from Application Module OK");
-
-
         } catch (NewtonException e) {
             Log.e(LOG_TAG, "NewtonException - Newton initialization error:" + e.getMessage(), e);
         }
