@@ -1,16 +1,14 @@
-//
-//  NewtonPlugin.swift
-//  Newton Cordova Demo
-//
-//  Created by Mirco Cipriani on 25/05/2017.
-//
-//
-
 import Foundation
 import Newton
 import UIKit
 
 let TAG = "NewtonPlugin"
+
+#if DEBUG
+    let DEBUG_BUILD = true
+#else
+    let DEBUG_BUILD = false
+#endif
 
 func DDIlog(_ message: String) {
     NSLog("[%@] - %@", TAG, message)
@@ -58,7 +56,7 @@ func DDIlog(_ message: String) {
     
     func getNewtonSecret() throws -> String {
         var keyForSecret = "NEWTON_SECRET"
-        if DEBUG_BUILD.boolValue {
+        if DEBUG_BUILD {
             keyForSecret = "NEWTON_SECRET_DEV"
         }
         if let secret = Bundle.main.infoDictionary?[keyForSecret] as? String {
