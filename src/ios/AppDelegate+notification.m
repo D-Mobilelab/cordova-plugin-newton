@@ -9,7 +9,7 @@
 #import "AppDelegate+notification.h"
 #import <objc/runtime.h>
 // $(PRODUCT_MODULE_NAME)
-#import "Swift2Objc-Header.h"
+#import "Newton_Cordova_Demo-Swift.h"
 
 //#import <Newton/Newton-Swift.h>
 
