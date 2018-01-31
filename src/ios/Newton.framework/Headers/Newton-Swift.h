@@ -265,8 +265,8 @@ SWIFT_CLASS("_TtC6Newton14NWUserMetaInfo")
 @end
 
 
-/// Newton iOS SDK v1.2.0
-/// Copyright © 2015 d-MobileLab S.p.A. All rights reserved.
+/// Newton iOS SDK v2.3.0
+/// Copyright © 2018 Buongiorno S.p.A. All rights reserved.
 SWIFT_CLASS("_TtC6Newton6Newton")
 @interface Newton : NSObject
 - (nonnull instancetype)init SWIFT_UNAVAILABLE;
