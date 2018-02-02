@@ -15,14 +15,14 @@ func DDIlog(_ message: String) {
 }
 
 
-@objc(NewtonPlugin) class NewtonPlugin : CDVPlugin {
+public class NewtonPlugin : CDVPlugin {
     
     var callbackId:String?
     
     // app status passed by appdelegate implemented in objc
-    open var notificationMessage:[String: Any] = [:]
-    open var isInline:Bool = false
-    open var coldstart:Bool = false
+    public var notificationMessage:[String: Any] = [:]
+    public var isInline:Bool = false
+    public var coldstart:Bool = false
     
     fileprivate var isAlreadyInitialized:Bool = false
  
@@ -67,17 +67,17 @@ func DDIlog(_ message: String) {
         throw PluginError.internalError(reason: "Error while getting Newton secret from pList NEWTON_SECRET")
     }
     
-    override func pluginInitialize() {
+    override public func pluginInitialize() {
         DDIlog("pluginInitialize()")
         notificationMessage = [String: Any]()
         //localNotificationMessage = UILocalNotification()
     }
     
-    override open func onAppTerminate() {
+    override public func onAppTerminate() {
         //
     }
     
-    func initialize(_ command: CDVInvokedUrlCommand) {
+    public func initialize(_ command: CDVInvokedUrlCommand) {
         DDIlog("action: initialize")
         
         
@@ -159,7 +159,7 @@ func DDIlog(_ message: String) {
         commandDelegate!.send(result, callbackId: command.callbackId)
     }
     
-    func setApplicationIconBadgeNumber(_ command: CDVInvokedUrlCommand) {
+    public func setApplicationIconBadgeNumber(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -206,7 +206,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func clearAllNotifications(_ command: CDVInvokedUrlCommand) {
+    public func clearAllNotifications(_ command: CDVInvokedUrlCommand) {
         
         let app = UIApplication.shared
         app.applicationIconBadgeNumber = 0
@@ -217,7 +217,7 @@ func DDIlog(_ message: String) {
     }
 
     
-    func sendEvent(_ command: CDVInvokedUrlCommand) {
+    public func sendEvent(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -260,7 +260,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func startLoginFlowWithParams(_ command: CDVInvokedUrlCommand) {
+    public func startLoginFlowWithParams(_ command: CDVInvokedUrlCommand) {
         
         // FIXME: TO COMPLETE! see Android implementation
         
@@ -422,7 +422,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func isUserLogged(_ command: CDVInvokedUrlCommand) {
+    public func isUserLogged(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -451,7 +451,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func getEnvironmentString(_ command: CDVInvokedUrlCommand) {
+    public func getEnvironmentString(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -477,7 +477,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func userLogout(_ command: CDVInvokedUrlCommand) {
+    public func userLogout(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -503,7 +503,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func getUserMetaInfo(_ command: CDVInvokedUrlCommand) {
+    public func getUserMetaInfo(_ command: CDVInvokedUrlCommand) {
         
         // FIXME: Check implementation
         
@@ -541,7 +541,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func getUserToken(_ command: CDVInvokedUrlCommand) {
+    public func getUserToken(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -571,7 +571,7 @@ func DDIlog(_ message: String) {
     }
     
     
-    func getOAuthProviders(_ command: CDVInvokedUrlCommand) {
+    public func getOAuthProviders(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -601,7 +601,7 @@ func DDIlog(_ message: String) {
     }
     
     
-    func rankContent(_ command: CDVInvokedUrlCommand) {
+    public func rankContent(_ command: CDVInvokedUrlCommand) {
         
         // FIXME: check if parameter recognition is working, expecially the enum from string of scope arg
         
@@ -664,7 +664,7 @@ func DDIlog(_ message: String) {
     }
     
     
-    func timedEventStart(_ command: CDVInvokedUrlCommand) {
+    public func timedEventStart(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -707,7 +707,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func timedEventStop(_ command: CDVInvokedUrlCommand) {
+    public func timedEventStop(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -750,7 +750,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func flowBegin(_ command: CDVInvokedUrlCommand) {
+    public func flowBegin(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -793,7 +793,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func flowCancel(_ command: CDVInvokedUrlCommand) {
+    public func flowCancel(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -836,7 +836,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func flowFail(_ command: CDVInvokedUrlCommand) {
+    public func flowFail(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -879,7 +879,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func flowStep(_ command: CDVInvokedUrlCommand) {
+    public func flowStep(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -922,7 +922,7 @@ func DDIlog(_ message: String) {
         )
     }
     
-    func flowSucceed(_ command: CDVInvokedUrlCommand) {
+    public func flowSucceed(_ command: CDVInvokedUrlCommand) {
         
         var errorDesc:String = "Unknown error"
         
@@ -966,7 +966,7 @@ func DDIlog(_ message: String) {
     }
     
     /*
-    func didReceiveLocalNotification (notification: Notification) {
+    public func didReceiveLocalNotification (notification: Notification) {
         DDIlog("didReceiveLocalNotification")
         if UIApplication.shared.applicationState != .active {
             // FIXME!!
@@ -983,7 +983,7 @@ func DDIlog(_ message: String) {
     }
     */
     
-    open func saveNotificationMessage(_ message:[String: Any]) {
+    public func saveNotificationMessage(_ message:[String: Any]) {
         notificationMessage = message
     }
     
@@ -1013,7 +1013,7 @@ func DDIlog(_ message: String) {
      * Send push data to Newton if the plugin has been initialized
      * otherwise the push data will be sent on plugin initialization
     */
-    func onNotifyLaunchOptions() {
+    public func onNotifyLaunchOptions() {
         DDIlog("onNotifyLaunchOptions() start")
         
         // if plugin has been initialized and there is a push saved then proceed
@@ -1047,7 +1047,7 @@ func DDIlog(_ message: String) {
         }
     }
     
-    func onRegisterForRemoteNotificationsOk(_ token:Data) {
+    public func onRegisterForRemoteNotificationsOk(_ token:Data) {
         // if plugin has been initialized then proceed
         if (self.callbackId != nil && !self.callbackId!.isEmpty) {
             
@@ -1074,7 +1074,7 @@ func DDIlog(_ message: String) {
     }
     
     
-    func onRegisterForRemoteNotificationsKo(_ error:Error) {
+    public func onRegisterForRemoteNotificationsKo(_ error:Error) {
         // if plugin has been initialized then proceed
         if (self.callbackId != nil && !self.callbackId!.isEmpty) {
             
@@ -1104,7 +1104,7 @@ func DDIlog(_ message: String) {
      * Send push data to Newton if the plugin has been initialized
      * otherwise the push data will be sent on plugin initialization
      */
-    func onReceiveRemoteNotification() {
+    public func onReceiveRemoteNotification() {
         DDIlog("onReceiveRemoteNotification() start")
         
         // if plugin has been initialized and there is a push saved then proceed
@@ -1137,7 +1137,7 @@ func DDIlog(_ message: String) {
     }
     
     /*
-    func onReceiveLocalNotification() {
+    public func onReceiveLocalNotification() {
         
         // if plugin has been initialized and there is a push saved then proceed
         if (self.callbackId != nil && !self.callbackId!.isEmpty) {
@@ -1148,7 +1148,7 @@ func DDIlog(_ message: String) {
                 let newtonInstance = try Newton.getSharedInstance()
                 
                 // FIXME: check type validity
-                // public func processLocalNotification(notification: UILocalNotification)
+                // public public func processLocalNotification(notification: UILocalNotification)
                 try newtonInstance.getPushManager().processLocalNotification(notification:localNotificationMessage)
                 
                 DDIlog("Push data sent to Newton")
@@ -1167,7 +1167,7 @@ func DDIlog(_ message: String) {
     }
     */
     
-    func convertCustomFieldToJson(_ customFieldSO: NWSimpleObject?) -> [String:Any] {
+    public func convertCustomFieldToJson(_ customFieldSO: NWSimpleObject?) -> [String:Any] {
         
         var customFieldJsonDict = [String:Any]()
         
@@ -1178,7 +1178,7 @@ func DDIlog(_ message: String) {
         return customFieldJsonDict
     }
     
-    func sendPushToJs(_ push:AnyObject) {
+    public func sendPushToJs(_ push:AnyObject) {
         //
         if (self.callbackId != nil && !self.callbackId!.isEmpty) {
             

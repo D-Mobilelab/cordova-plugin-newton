@@ -102,16 +102,14 @@
                 <true/>
             </dict>
         </config-file>
+        <preference name="UseSwiftLanguageVersion" value="4" />
         <header-file src="src/ios/NewtonPlugin-Bridging-Header.h" />
         <source-file src="src/ios/NewtonPlugin.swift"/>
-        <header-file src="src/ios/NewtonPlugin.h" />
-        <source-file src="src/ios/NewtonPlugin.m"/>
         <header-file src="src/ios/AppDelegate+notification.h" />
         <source-file src="src/ios/AppDelegate+notification.m"/>
         
         <framework src="src/ios/Newton.framework" embed="true" custom="true" />
         <framework src="src/ios/CommonCrypto.framework" embed="true" custom="true" />
-
-        <dependency id="cordova-plugin-add-swift-support" url="https://github.com/D-Mobilelab/cordova-plugin-add-swift-support.git" commit="master" />
+        <dependency id="cordova-plugin-add-swift-support" version="1.7.1"/>
     </platform>
 </plugin>

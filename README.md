@@ -23,6 +23,8 @@ You can find this setting in Build Setting -> Swift Compiler – General -> Obje
 
 3. Change project properties in XCode: go to Capabilities and set Push Notification to ON
 
+4. change to ON _Swift 3 @objc Inference_ in the build settings! !!important!!
+
 ### Android platform
 
 You need to add the plugin [cordova-plugin-settings-hook](https://www.npmjs.com/package/cordova-plugin-settings-hook) and the following configuration on config.xml file inside the platform android section:
