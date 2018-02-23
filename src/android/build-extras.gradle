@@ -8,21 +8,14 @@ def doExtractStringFromManifest(name) {
     return matcher.group(1)
 }
 
+
 repositories {
-    maven { url "http://get.kidzinmind.net/android_libraries" }
-}
-
-dependencies {
-    compile 'com.buongiorno.libraries:newton:current-M-develop@aar'
-}
-
-/*repositories {
     maven { url 'http://static.newton.pm/android/' }
 }
 
 dependencies {
     compile 'com.buongiorno:newton:1.14.1@aar'
-}*/
+}
 
 android {
     sourceSets {
