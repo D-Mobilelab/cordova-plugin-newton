@@ -4,12 +4,6 @@ import UIKit
 
 let TAG = "NewtonPlugin"
 
-#if DEBUG
-    let DEBUG_BUILD = true
-#else
-    let DEBUG_BUILD = false
-#endif
-
 func DDIlog(_ message: String) {
     NSLog("[%@] - %@", TAG, message)
 }
@@ -36,10 +30,18 @@ func DDIlog(_ message: String) {
     }
     
     class func getNewtonSecret() throws -> String {
-        var keyForSecret = "NEWTON_SECRET"
-        if DEBUG_BUILD {
-            keyForSecret = "NEWTON_SECRET_DEV"
-        }
+        #if DEBUG
+            /* 
+            * Check Swift compiler custom flags -> Other Swift flags -DDEBUG flag 
+            * otherwise it will go always in production!
+            */
+            print("debug")
+            let keyForSecret = "NEWTON_SECRET_DEV"
+        #else
+            print("release")
+            let keyForSecret = "NEWTON_SECRET"
+        #endif
+        
         if let secret = Bundle.main.infoDictionary?[keyForSecret] as? String {
             DDIlog("using secret: \(secret) got from \(keyForSecret)")
             return secret;

@@ -25,6 +25,8 @@ You can find this setting in Build Setting -> Swift Compiler – General -> Obje
 
 4. change to ON _Swift 3 @objc Inference_ in the build settings! !!important!!
 
+5. Set in XCode Build Setting: Swift compiler custom flag -> Other Swift Custom flags -DDEBUG key if you want 
+
 ### Android platform
 
 You need to add the plugin [cordova-plugin-settings-hook](https://www.npmjs.com/package/cordova-plugin-settings-hook) and the following configuration on config.xml file inside the platform android section:
