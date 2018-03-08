@@ -88,6 +88,8 @@ func DDIlog(_ message: String) {
     }
     
     @objc func pushHandler(pushObject:NWPushBase) {
+        let app = UIApplication.shared
+        app.applicationIconBadgeNumber = 0
         print("pushHandler \(pushObject.description)")
         // Save it and send it if a callback is already registered
         pushes.append(pushObject)
@@ -190,7 +192,7 @@ func DDIlog(_ message: String) {
     
     @objc public func onReceiveRemoteNotificationWithUserInfo(_ userInfo: [String:Any]) {
         DDIlog("onReceiveRemoteNotification() start")
-        do {
+        do {           
             try Newton.getSharedInstance()
                 .getPushManager()
                 .processRemoteNotification(userInfo:userInfo)
