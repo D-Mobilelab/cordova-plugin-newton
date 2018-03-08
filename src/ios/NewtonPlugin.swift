@@ -31,10 +31,6 @@ func DDIlog(_ message: String) {
     
     class func getNewtonSecret() throws -> String {
         #if DEBUG
-            /* 
-            * Check Swift compiler custom flags -> Other Swift flags -DDEBUG flag 
-            * otherwise it will go always in production!
-            */
             print("debug")
             let keyForSecret = "NEWTON_SECRET_DEV"
         #else
@@ -51,13 +47,17 @@ func DDIlog(_ message: String) {
     
     override public func pluginInitialize() {
         DDIlog("pluginInitialize()")
+        self.pushes = self.pushes ?? [NWPushBase]()
     }
     
     @objc public func setPushCallback(_ command: CDVInvokedUrlCommand) {
-        if (self.callbackId == nil) {
+        if (self.callbackId == nil || self.callbackId!.isEmpty) {
             DDIlog("push callback registered")
             // Save JS callback context. Note: only one callback
             self.callbackId = command.callbackId
+            let result: CDVPluginResult = CDVPluginResult(status: CDVCommandStatus_NO_RESULT)
+            result.setKeepCallbackAs(true)
+            commandDelegate!.send(result, callbackId: command.callbackId)
         }
         sendPushToJs()
     }
@@ -80,7 +80,6 @@ func DDIlog(_ message: String) {
             for push in self.pushes {
                 let pushSerialized = serializePush(pushObject:push)
                 let result: CDVPluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: pushSerialized)
-                result.setKeepCallbackAs(true)
                 commandDelegate!.send(result, callbackId: self.callbackId)
             }
             //remove the push from array?
@@ -89,6 +88,7 @@ func DDIlog(_ message: String) {
     }
     
     @objc func pushHandler(pushObject:NWPushBase) {
+        print("pushHandler \(pushObject.description)")
         // Save it and send it if a callback is already registered
         pushes.append(pushObject)
         sendPushToJs()
@@ -169,25 +169,23 @@ func DDIlog(_ message: String) {
     
     @objc public func onRegisterForRemoteNotificationsWithError(_ error: Error) {
         // if plugin has been initialized then proceed
-        if (self.callbackId != nil && !self.callbackId!.isEmpty) {
             
-            var errorDesc:String = "Unknown error"
-            
-            do {
-                let newtonInstance = try Newton.getSharedInstance()
-                try newtonInstance.getPushManager().setRegistrationError(error: error)
-                DDIlog("Registration error sent to Newton")
-                return
-            }
-            catch let err as PluginError {
-                errorDesc = err.description
-            }
-            catch {
-                errorDesc = String(describing: error)
-            }
-            
-            DDIlog("onRegisterForRemoteNotificationsKo error sending error to newton: "+errorDesc)
+        var errorDesc:String = "Unknown error"
+        
+        do {
+            let newtonInstance = try Newton.getSharedInstance()
+            try newtonInstance.getPushManager().setRegistrationError(error: error)
+            DDIlog("Registration error sent to Newton")
+            return
         }
+        catch let err as PluginError {
+            errorDesc = err.description
+        }
+        catch {
+            errorDesc = String(describing: error)
+        }
+        
+        DDIlog("onRegisterForRemoteNotificationsKo error sending error to newton: "+errorDesc)
     }
     
     @objc public func onReceiveRemoteNotificationWithUserInfo(_ userInfo: [String:Any]) {
