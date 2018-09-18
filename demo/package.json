@@ -7,9 +7,9 @@
   },
   "dependencies": {
     "newton-adapter": "^2.1.0",
-    "onsenui": "2.2.x",
-    "react": "15.4.2",
-    "react-dom": "15.4.2",
-    "react-onsenui": "1.2.x"
+    "onsenui": "~2.10.4",
+    "react": "16.5.1",
+    "react-dom": "16.5.1",
+    "react-onsenui": "~1.11.1"
   }
 }
