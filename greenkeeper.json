@@ -1,0 +1,11 @@
+{
+  "groups": {
+    "default": {
+      "packages": [
+        "demo-laico/package.json",
+        "demo/package.json",
+        "package.json"
+      ]
+    }
+  }
+}
