@@ -1,4 +1,7 @@
 # cordova-plugin-newton
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/D-Mobilelab/cordova-plugin-newton.svg)](https://greenkeeper.io/)
+
 Newton Platform Cordova Plugin
 
 ## Installation
