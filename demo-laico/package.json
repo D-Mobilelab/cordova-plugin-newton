@@ -3,17 +3,17 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "cordova-android": "^6.4.0",
+        "cordova-android": "^7.1.1",
         "cordova-ios": "~4",
         "cordova-plugin-newton": "file:///Users/mirco.cipriani/Development/bitbucket-ibridi/cordova-plugin-newton",
         "cordova-plugin-settings-hook": "^0.2.7",
-        "onsenui": "^2.4.0",
-        "react": "^15.6.1",
-        "react-dom": "^15.6.1",
-        "react-onsenui": "^1.4.0"
+        "onsenui": "~2.10.4",
+        "react": "16.5.1",
+        "react-dom": "16.5.1",
+        "react-onsenui": "~1.11.1"
     },
     "devDependencies": {
-        "react-scripts": "1.0.7"
+        "react-scripts": "1.1.5"
     },
     "scripts": {
         "start": "react-scripts start",
