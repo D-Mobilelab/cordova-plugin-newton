@@ -1,4 +1,7 @@
 # cordova-plugin-newton
+
+## [!!!] This repository has been deprecated
+
 Newton Platform Cordova Plugin
 
 ## Installation
